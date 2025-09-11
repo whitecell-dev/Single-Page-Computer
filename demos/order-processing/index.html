@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Processing Demo - AXIS SPC</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .output {
+            background: #f0f8ff;
+            border: 2px solid #3182ce;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+        }
+        .audit {
+            background: #f0fff4;
+            border: 2px solid #38a169;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            background: #fed7d7;
+            border: 2px solid #e53e3e;
+            color: #742a2a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Processing Demo</h1>
+        <p class="subtitle">Single Page Computer with 3-rule e-commerce workflow</p>
+        
+        <div class="grid">
+            <div class="section">
+                <h3>Input Data (JSON)</h3>
+                <textarea id="inputData">{
+  "order": {
+    "total": 150.00,
+    "customer_type": "premium",
+    "items_count": 3
+  },
+  "customer": {
+    "loyalty_points": 250,
+    "tier": "silver"
+  }
+}</textarea>
+            </div>
+            
+            <div class="section">
+                <h3>Rules Configuration</h3>
+                <textarea id="rulesConfig">{
+  "max_iterations": 5,
+  "rules": [
+    {
+      "name": "apply_premium_discount",
+      "priority": 1,
+      "if": "order.customer_type == 'premium' && order.total > 100",
+      "then": {
+        "order.discount": "{{order.total * 0.1}}",
+        "order.discounted_total": "{{order.total * 0.9}}"
+      }
+    },
+    {
+      "name": "award_loyalty_points",
+      "priority": 2,
+      "if": "order.discounted_total !== undefined && order.discounted_total > 0",
+      "then": {
+        "customer.loyalty_points": "{{customer.loyalty_points + Math.floor(order.discounted_total / 10)}}"
+      }
+    },
+    {
+      "name": "upgrade_tier",
+      "priority": 3,
+      "if": "customer.loyalty_points !== undefined && customer.loyalty_points >= 300 && customer.tier == 'silver'",
+      "then": {
+        "customer.tier": "gold",
+        "customer.upgraded_date": "{{now()}}"
+      }
+    }
+  ]
+}</textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <button onclick="applyRules()">Apply Rules</button>
+            <button onclick="showAuditTrail()">Show Audit Trail</button>
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // AXIS Rules Engine (Minimal Kernel)
+        class AxisRulesEngine {
+            constructor() {
+                this.auditTrail = [];
+                this.conflictLog = [];
+                this.currentIteration = 0;
+            }
+
+            apply(inputData, rulesConfig) {
+                this.auditTrail = [];
+                this.conflictLog = [];
+                this.currentIteration = 0;
+
+                let currentState = JSON.parse(JSON.stringify(inputData));
+                let iteration = 0;
+                let changed = true;
+                const maxIterations = rulesConfig.max_iterations || 10;
+
+                const sortedRules = [...(rulesConfig.rules || [])].sort(
+                    (a, b) => (a.priority || 999) - (b.priority || 999)
+                );
+
+                while (changed && iteration < maxIterations) {
+                    changed = false;
+                    iteration++;
+                    this.currentIteration = iteration;
+
+                    const iterationChanges = new Map();
+
+                    for (let rule of sortedRules) {
+                        const prevState = JSON.stringify(currentState);
+
+                        if (this.evaluateCondition(rule.if, currentState)) {
+                            this.log(`Applied: ${rule.name}`);
+
+                            if (rule.then) {
+                                const result = this.applyTransformationsWithTracking(
+                                    currentState,
+                                    rule.then,
+                                    rule.name,
+                                    iterationChanges
+                                );
+
+                                currentState = result.newState;
+                                if (prevState !== JSON.stringify(currentState)) {
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return {
+                    input: inputData,
+                    output: currentState,
+                    iterations: iteration,
+                    audit: this.auditTrail,
+                    conflicts: this.conflictLog,
+                    rulesApplied: this.getRulesApplied()
+                };
+            }
+
+            applyTransformationsWithTracking(state, transformations, ruleName, iterationChanges) {
+                const newState = JSON.parse(JSON.stringify(state));
+                const fieldsChanged = [];
+
+                for (const [path, value] of Object.entries(transformations)) {
+                    const resolvedValue = this.resolveValue(value, newState);
+
+                    if (iterationChanges.has(path)) {
+                        const previousRule = iterationChanges.get(path);
+                        this.conflictLog.push({
+                            field: path,
+                            previousRule,
+                            currentRule: ruleName,
+                            iteration: this.currentIteration
+                        });
+                    }
+
+                    iterationChanges.set(path, ruleName);
+                    this.setNestedPath(newState, path, resolvedValue);
+                    fieldsChanged.push(path);
+                }
+
+                return { newState, fieldsChanged };
+            }
+
+            evaluateCondition(condition, context) {
+                if (!condition) return true;
+                try {
+                    const safeContext = this.createSafeContext(context);
+                    const func = new Function(...Object.keys(safeContext), `return ${condition}`);
+                    return Boolean(func(...Object.values(safeContext)));
+                } catch {
+                    return false;
+                }
+            }
+
+            resolveValue(template, context) {
+                if (typeof template !== 'string') return template;
+                if (template.includes('{{') && template.includes('}}')) {
+                    const expression = template.replace(/\{\{(.*?)\}\}/g, '$1').trim();
+                    try {
+                        if (expression === 'now()') return new Date().toISOString();
+                        if (expression === 'uuid()')
+                            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                                const r = (Math.random() * 16) | 0;
+                                const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                                return v.toString(16);
+                            });
+
+                        const safeContext = this.createSafeContext(context);
+                        const func = new Function(...Object.keys(safeContext), `return ${expression}`);
+                        return func(...Object.values(safeContext));
+                    } catch {
+                        return template;
+                    }
+                }
+                return template;
+            }
+
+            createSafeContext(context) {
+                const flattened = this.flattenObject(context);
+                return {
+                    ...flattened,
+                    ...context,
+                    Math,
+                    Date,
+                    parseInt,
+                    parseFloat,
+                    String,
+                    Number,
+                    Boolean,
+                    Array,
+                    JSON
+                };
+            }
+
+            flattenObject(obj, prefix = '') {
+                const flattened = {};
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        const newKey = prefix ? `${prefix}.${key}` : key;
+                        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                            Object.assign(flattened, this.flattenObject(obj[key], newKey));
+                        } else {
+                            flattened[newKey.replace(/\./g, '_')] = obj[key];
+                        }
+                    }
+                }
+                return flattened;
+            }
+
+            setNestedPath(obj, path, value) {
+                const keys = path.split('.');
+                let current = obj;
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                        current[keys[i]] = {};
+                    }
+                    current = current[keys[i]];
+                }
+                current[keys[keys.length - 1]] = value;
+            }
+
+            log(message, level = 'info') {
+                this.auditTrail.push({
+                    timestamp: new Date().toISOString(),
+                    level,
+                    message
+                });
+            }
+
+            getRulesApplied() {
+                return this.auditTrail
+                    .filter(e => e.message.startsWith('Applied:'))
+                    .map(e => e.message.replace('Applied: ', ''));
+            }
+        }
+
+        // Global engine instance
+        const engine = new AxisRulesEngine();
+
+        function applyRules() {
+            try {
+                const inputData = JSON.parse(document.getElementById('inputData').value);
+                const rulesConfig = JSON.parse(document.getElementById('rulesConfig').value);
+
+                const result = engine.apply(inputData, rulesConfig);
+
+                document.getElementById('output').innerHTML = `
+                    <div class="output">
+                        <h3>Order Processing Result</h3>
+                        <strong>Input:</strong>
+                        ${JSON.stringify(result.input, null, 2)}
+                        
+                        <strong>Output:</strong>
+                        ${JSON.stringify(result.output, null, 2)}
+                        
+                        <strong>Summary:</strong>
+                        - Iterations: ${result.iterations}
+                        - Rules Applied: ${result.rulesApplied.join(', ') || 'None'}
+                        - Conflicts: ${result.conflicts.length}
+                    </div>
+                `;
+            } catch (e) {
+                document.getElementById('output').innerHTML = `
+                    <div class="output error">
+                        <h3>Error</h3>
+                        ${e.message}
+                    </div>
+                `;
+            }
+        }
+
+        function showAuditTrail() {
+            if (engine.auditTrail.length === 0) {
+                document.getElementById('output').innerHTML = `
+                    <div class="audit">
+                        <h3>Audit Trail</h3>
+                        No operations recorded. Run "Apply Rules" first.
+                    </div>
+                `;
+                return;
+            }
+
+            const auditHtml = engine.auditTrail.map(entry => `
+                <div style="margin: 5px 0; padding: 5px; background: #f0fff4; border-radius: 4px;">
+                    [${entry.timestamp.split('T')[1].split('.')[0]}] ${entry.message}
+                </div>
+            `).join('');
+
+            document.getElementById('output').innerHTML = `
+                <div class="audit">
+                    <h3>Audit Trail</h3>
+                    ${auditHtml}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

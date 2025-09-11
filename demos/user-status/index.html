@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loyalty Points Demo - AXIS SPC</title>
+    <title>User Status Demo - AXIS SPC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -95,23 +95,22 @@
 </head>
 <body>
     <div class="container">
-        <h1>Loyalty Points Demo</h1>
-        <p class="subtitle">Single Page Computer with 3-rule loyalty program with idempotency</p>
+        <h1>User Status Demo</h1>
+        <p class="subtitle">Single Page Computer with 3-rule user activation workflow</p>
         
         <div class="grid">
             <div class="section">
                 <h3>Input Data (JSON)</h3>
                 <textarea id="inputData">{
-  "customer": {
-    "id": "CUST_001",
-    "points": 95,
-    "tier": "bronze",
-    "purchases_this_month": 3
+  "user": {
+    "age": 25,
+    "role": "admin",
+    "email_verified": true,
+    "account_created": "2024-01-15"
   },
-  "purchase": {
-    "amount": 75.50,
-    "category": "electronics",
-    "processed": false
+  "stats": {
+    "login_count": 45,
+    "last_login": "2024-02-01"
   }
 }</textarea>
             </div>
@@ -122,30 +121,29 @@
   "max_iterations": 5,
   "rules": [
     {
-      "name": "earn_base_points",
+      "name": "activate_verified_users",
       "priority": 1,
-      "if": "purchase.amount !== undefined && purchase.amount > 0 && purchase.processed !== true",
+      "if": "user.age >= 18 && user.email_verified == true",
       "then": {
-        "customer.points": "{{customer.points + Math.floor(purchase.amount)}}",
-        "purchase.processed": true
+        "user.status": "active",
+        "user.activated_date": "{{now()}}"
       }
     },
     {
-      "name": "bonus_for_electronics",
+      "name": "award_admin_privileges",
       "priority": 2,
-      "if": "purchase.category !== undefined && purchase.category == 'electronics' && purchase.bonus_applied !== true",
+      "if": "user.role == 'admin' && user.status == 'active'",
       "then": {
-        "customer.points": "{{customer.points + 10}}",
-        "purchase.bonus_applied": true
+        "user.permissions": ["read", "write", "admin"],
+        "user.admin_level": 1
       }
     },
     {
-      "name": "upgrade_to_silver",
+      "name": "calculate_engagement",
       "priority": 3,
-      "if": "customer.points !== undefined && customer.points >= 100 && customer.tier == 'bronze'",
+      "if": "stats.login_count > 0",
       "then": {
-        "customer.tier": "silver",
-        "customer.tier_upgraded": "{{now()}}"
+        "stats.engagement_score": "{{Math.floor(stats.login_count / 10)}}"
       }
     }
   ]
@@ -354,7 +352,7 @@
 
                 document.getElementById('output').innerHTML = `
                     <div class="output">
-                        <h3>Loyalty Processing Result</h3>
+                        <h3>Transformation Result</h3>
                         <strong>Input:</strong>
                         ${JSON.stringify(result.input, null, 2)}
                         

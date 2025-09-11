@@ -1,0 +1,56 @@
+
+
+
+##  **data.json**
+
+
+{
+  "applicant": {
+    "name": "Sarah Johnson",
+    "age": 32,
+    "employment_status": "full_time",
+    "annual_income": 125000,
+    "employment_years": 8,
+    "credit_score": 720,
+    "existing_debt": 45000,
+    "savings": 180000,
+    "first_time_buyer": false
+  },
+  "co_applicant": {
+    "exists": true,
+    "annual_income": 95000,
+    "employment_years": 5,
+    "credit_score": 740,
+    "existing_debt": 22000
+  },
+  "property": {
+    "purchase_price": 650000,
+    "property_type": "single_family",
+    "location_state": "CA",
+    "appraised_value": 0,
+    "property_tax_annual": 8125,
+    "hoa_monthly": 250
+  },
+  "loan": {
+    "requested_amount": 520000,
+    "down_payment": 130000,
+    "term_years": 30,
+    "type": "conventional",
+    "interest_rate": 0,
+    "processed": false
+  },
+  "insurance": {
+    "homeowners_annual": 2400,
+    "pmi_required": false,
+    "pmi_monthly": 0
+  },
+  "ratios": {
+    "calculated": false
+  },
+  "approval": {
+    "status": "pending",
+    "conditions": [],
+    "final_decision": false
+  }
+}
+

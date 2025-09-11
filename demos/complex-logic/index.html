@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loyalty Points Demo - AXIS SPC</title>
+    <title>Complex Logic Demo - AXIS SPC</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -95,23 +95,25 @@
 </head>
 <body>
     <div class="container">
-        <h1>Loyalty Points Demo</h1>
-        <p class="subtitle">Single Page Computer with 3-rule loyalty program with idempotency</p>
+        <h1>Complex Logic Demo</h1>
+        <p class="subtitle">Single Page Computer with 4-rule minor account workflow</p>
         
         <div class="grid">
             <div class="section">
                 <h3>Input Data (JSON)</h3>
                 <textarea id="inputData">{
-  "customer": {
-    "id": "CUST_001",
-    "points": 95,
-    "tier": "bronze",
-    "purchases_this_month": 3
+  "user": {
+    "age": 17,
+    "email_verified": false,
+    "parent_consent": true
   },
-  "purchase": {
-    "amount": 75.50,
-    "category": "electronics",
-    "processed": false
+  "account": {
+    "status": "pending",
+    "created_days_ago": 5
+  },
+  "permissions": {
+    "can_purchase": false,
+    "needs_oversight": true
   }
 }</textarea>
             </div>
@@ -119,33 +121,43 @@
             <div class="section">
                 <h3>Rules Configuration</h3>
                 <textarea id="rulesConfig">{
-  "max_iterations": 5,
+  "max_iterations": 10,
   "rules": [
     {
-      "name": "earn_base_points",
+      "name": "verify_minor_with_consent",
       "priority": 1,
-      "if": "purchase.amount !== undefined && purchase.amount > 0 && purchase.processed !== true",
+      "if": "user.age < 18 && user.parent_consent == true",
       "then": {
-        "customer.points": "{{customer.points + Math.floor(purchase.amount)}}",
-        "purchase.processed": true
+        "user.email_verified": true,
+        "account.minor_account": true
       }
     },
     {
-      "name": "bonus_for_electronics",
+      "name": "activate_verified_account", 
       "priority": 2,
-      "if": "purchase.category !== undefined && purchase.category == 'electronics' && purchase.bonus_applied !== true",
+      "if": "user.email_verified == true && account.status == 'pending'",
       "then": {
-        "customer.points": "{{customer.points + 10}}",
-        "purchase.bonus_applied": true
+        "account.status": "active",
+        "account.activated_date": "{{now()}}"
       }
     },
     {
-      "name": "upgrade_to_silver",
+      "name": "set_restrictions_for_minors",
       "priority": 3,
-      "if": "customer.points !== undefined && customer.points >= 100 && customer.tier == 'bronze'",
+      "if": "account.minor_account == true && account.status == 'active'",
       "then": {
-        "customer.tier": "silver",
-        "customer.tier_upgraded": "{{now()}}"
+        "permissions.can_purchase": false,
+        "permissions.needs_oversight": true,
+        "account.restricted": true
+      }
+    },
+    {
+      "name": "notify_parent_activation",
+      "priority": 4,
+      "if": "account.minor_account == true && account.status == 'active'",
+      "then": {
+        "notifications.parent_notified": true,
+        "notifications.notification_sent": "{{now()}}"
       }
     }
   ]
@@ -354,7 +366,7 @@
 
                 document.getElementById('output').innerHTML = `
                     <div class="output">
-                        <h3>Loyalty Processing Result</h3>
+                        <h3>Complex Logic Result</h3>
                         <strong>Input:</strong>
                         ${JSON.stringify(result.input, null, 2)}
                         

@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIS Mortgage Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+        
+        .input-section {
+            padding: 30px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .output-section {
+            padding: 30px;
+            background: white;
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            height: 250px;
+            resize: vertical;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .result-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .result-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .result-value {
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .status-approved {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .status-conditional {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .status-denied {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .conditions-list {
+            background: #fef5e7;
+            border: 1px solid #f6ad55;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .conditions-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .conditions-list li {
+            padding: 5px 0;
+            color: #744210;
+        }
+        
+        .conditions-list li::before {
+            content: "⚠️ ";
+            margin-right: 8px;
+        }
+        
+        .audit-trail {
+            background: #f0fff4;
+            border: 2px solid #38a169;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+        }
+        
+        .audit-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #c6f6d5;
+        }
+        
+        .audit-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .audit-timestamp {
+            color: #38a169;
+            font-weight: 600;
+        }
+        
+        .error {
+            background: #fed7d7;
+            border: 2px solid #e53e3e;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AXIS Mortgage Calculator</h1>
+            <p>Intelligent loan processing with 19-rule decision engine</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-title">Loan Application Data</div>
+                
+                <div class="form-group">
+                    <label>Applicant Information</label>
+                    <div class="form-row">
+                        <input type="text" id="applicantIncome" placeholder="Annual Income ($)" value="125000">
+                        <input type="text" id="creditScore" placeholder="Credit Score" value="720">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Property & Loan Details</label>
+                    <div class="form-row">
+                        <input type="text" id="purchasePrice" placeholder="Purchase Price ($)" value="650000">
+                        <input type="text" id="downPayment" placeholder="Down Payment ($)" value="130000">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Raw JSON Input (Advanced)</label>
+                    <textarea id="inputData">{
+  "applicant": {
+    "name": "Sarah Johnson",
+    "age": 32,
+    "employment_status": "full_time",
+    "annual_income": 125000,
+    "employment_years": 8,
+    "credit_score": 720,
+    "existing_debt": 45000,
+    "savings": 180000,
+    "first_time_buyer": false
+  },
+  "co_applicant": {
+    "exists": true,
+    "annual_income": 95000,
+    "employment_years": 5,
+    "credit_score": 740,
+    "existing_debt": 22000
+  },
+  "property": {
+    "purchase_price": 650000,
+    "property_type": "single_family",
+    "location_state": "CA",
+    "appraised_value": 0,
+    "property_tax_annual": 8125,
+    "hoa_monthly": 250
+  },
+  "loan": {
+    "requested_amount": 520000,
+    "down_payment": 130000,
+    "term_years": 30,
+    "type": "conventional",
+    "interest_rate": 0,
+    "processed": false
+  },
+  "insurance": {
+    "homeowners_annual": 2400,
+    "pmi_required": false,
+    "pmi_monthly": 0
+  },
+  "ratios": {
+    "calculated": false
+  },
+  "approval": {
+    "status": "pending",
+    "conditions": [],
+    "final_decision": false
+  }
+}</textarea>
+                </div>
+                
+                <div class="button-group">
+                    <button onclick="processLoan()">Calculate Loan</button>
+                    <button onclick="showAuditTrail()">View Process</button>
+                    <button onclick="loadSample('good')">Load Good Credit</button>
+                    <button onclick="loadSample('poor')">Load Poor Credit</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="section-title">Loan Decision Results</div>
+                <div id="output">
+                    <div class="result-card">
+                        <h3>Ready to Process</h3>
+                        <p>Enter applicant information and click "Calculate Loan" to process the mortgage application through our 19-rule decision engine.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AXIS Rules Engine - Same engine as before
+        class AxisRulesEngine {
+            constructor() {
+                this.auditTrail = [];
+                this.rulesHash = '';
+                this.conflictLog = [];
+                this.currentIteration = 0;
+            }
+
+            apply(inputData, rulesConfig) {
+                this.auditTrail = [];
+                this.conflictLog = [];
+                this.currentIteration = 0;
+                let currentState = JSON.parse(JSON.stringify(inputData));
+                let iteration = 0;
+                let changed = true;
+                const maxIterations = rulesConfig.max_iterations || 10;
+
+                this.log('Starting mortgage calculation');
+                this.log(`Applicant: ${currentState.applicant?.name || 'Unknown'}`);
+
+                const sortedRules = [...rulesConfig.rules].sort((a, b) => 
+                    (a.priority || 999) - (b.priority || 999)
+                );
+
+                while (changed && iteration < maxIterations) {
+                    changed = false;
+                    iteration++;
+                    this.currentIteration = iteration;
+                    this.log(`--- Processing Step ${iteration} ---`);
+                    
+                    const iterationChanges = new Map();
+
+                    for (let rule of sortedRules) {
+                        const previousState = JSON.stringify(currentState);
+
+                        if (this.evaluateCondition(rule.if, currentState)) {
+                            this.log(`Applied: ${rule.name}`);
+                            
+                            if (rule.then) {
+                                const stateChanges = this.applyTransformationsWithTracking(
+                                    currentState, 
+                                    rule.then, 
+                                    rule.name,
+                                    iterationChanges
+                                );
+                                
+                                currentState = stateChanges.newState;
+                                
+                                if (previousState !== JSON.stringify(currentState)) {
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                this.log(`Completed in ${iteration} steps`);
+
+                return {
+                    input: inputData,
+                    output: currentState,
+                    iterations: iteration,
+                    audit: this.auditTrail,
+                    conflicts: this.conflictLog,
+                    rulesApplied: this.getRulesApplied()
+                };
+            }
+
+            applyTransformationsWithTracking(state, transformations, ruleName, iterationChanges) {
+                const newState = JSON.parse(JSON.stringify(state));
+                const fieldsChanged = [];
+
+                for (const [path, value] of Object.entries(transformations)) {
+                    const resolvedValue = this.resolveValue(value, newState);
+                    
+                    if (iterationChanges.has(path)) {
+                        const previousRule = iterationChanges.get(path);
+                        this.conflictLog.push({
+                            field: path,
+                            previousRule: previousRule,
+                            currentRule: ruleName,
+                            resolution: 'priority_override',
+                            iteration: this.currentIteration
+                        });
+                    }
+                    
+                    iterationChanges.set(path, ruleName);
+                    this.setNestedPath(newState, path, resolvedValue);
+                    fieldsChanged.push(path);
+                }
+
+                return { newState, fieldsChanged };
+            }
+
+            evaluateCondition(condition, context) {
+                if (!condition) return true;
+                try {
+                    const safeContext = this.createSafeContext(context);
+                    const func = new Function(...Object.keys(safeContext), `return ${condition}`);
+                    return func(...Object.values(safeContext));
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            resolveValue(template, context) {
+                if (typeof template !== 'string') return template;
+
+                if (template.includes('{{') && template.includes('}}')) {
+                    const expression = template.replace(/\{\{(.*?)\}\}/g, '$1').trim();
+                    
+                    try {
+                        if (expression === 'now()') {
+                            return new Date().toISOString();
+                        }
+                        if (expression === 'uuid()') {
+                            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                return v.toString(16);
+                            });
+                        }
+                        
+                        const safeContext = this.createSafeContext(context);
+                        const func = new Function(...Object.keys(safeContext), `return ${expression}`);
+                        return func(...Object.values(safeContext));
+                    } catch (e) {
+                        return template;
+                    }
+                }
+
+                return template;
+            }
+
+            createSafeContext(context) {
+                const flattened = this.flattenObject(context);
+                return {
+                    ...flattened,
+                    ...context,
+                    Math: Math,
+                    Date: Date,
+                    parseInt: parseInt,
+                    parseFloat: parseFloat
+                };
+            }
+
+            flattenObject(obj, prefix = '') {
+                const flattened = {};
+                
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        const newKey = prefix ? `${prefix}.${key}` : key;
+                        
+                        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                            Object.assign(flattened, this.flattenObject(obj[key], newKey));
+                        } else {
+                            flattened[newKey.replace(/\./g, '_')] = obj[key];
+                        }
+                    }
+                }
+                
+                return flattened;
+            }
+
+            setNestedPath(obj, path, value) {
+                const keys = path.split('.');
+                let current = obj;
+
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                        current[keys[i]] = {};
+                    }
+                    current = current[keys[i]];
+                }
+
+                current[keys[keys.length - 1]] = value;
+            }
+
+            log(message, level = 'info') {
+                this.auditTrail.push({
+                    timestamp: new Date().toISOString(),
+                    level,
+                    message
+                });
+            }
+
+            getRulesApplied() {
+                return this.auditTrail
+                    .filter(entry => entry.message.startsWith('Applied:'))
+                    .map(entry => entry.message.replace('Applied: ', ''));
+            }
+        }
+
+        // Mortgage Rules Configuration
+        const mortgageRules = {
+            "max_iterations": 20,
+            "rules": [
+                {
+                    "name": "calculate_combined_income",
+                    "priority": 1,
+                    "if": "applicant.annual_income > 0 && loan.processed !== true",
+                    "then": {
+                        "household.combined_income": "{{applicant.annual_income + (co_applicant.exists ? co_applicant.annual_income : 0)}}",
+                        "household.primary_income": "{{applicant.annual_income}}",
+                        "household.income_calculated": true
+                    }
+                },
+                {
+                    "name": "calculate_combined_debt",
+                    "priority": 2,
+                    "if": "household.income_calculated == true && household.debt_calculated !== true",
+                    "then": {
+                        "household.combined_debt": "{{applicant.existing_debt + (co_applicant.exists ? co_applicant.existing_debt : 0)}}",
+                        "household.debt_calculated": true
+                    }
+                },
+                {
+                    "name": "determine_credit_score",
+                    "priority": 3,
+                    "if": "household.income_calculated == true && household.credit_determined !== true",
+                    "then": {
+                        "household.credit_score": "{{co_applicant.exists ? Math.min(applicant.credit_score, co_applicant.credit_score) : applicant.credit_score}}",
+                        "household.credit_determined": true
+                    }
+                },
+                {
+                    "name": "validate_down_payment",
+                    "priority": 4,
+                    "if": "loan.down_payment > 0 && loan.down_payment_validated !== true",
+                    "then": {
+                        "loan.down_payment_percent": "{{(loan.down_payment / property.purchase_price) * 100}}",
+                        "loan.ltv_ratio": "{{((property.purchase_price - loan.down_payment) / property.purchase_price) * 100}}",
+                        "loan.down_payment_validated": true
+                    }
+                },
+                {
+                    "name": "determine_interest_rate",
+                    "priority": 5,
+                    "if": "household.credit_score > 0 && loan.interest_rate == 0 && loan.rate_determined !== true",
+                    "then": {
+                        "loan.base_rate": 6.75,
+                        "loan.credit_adjustment": "{{household.credit_score >= 760 ? -0.5 : household.credit_score >= 720 ? -0.25 : household.credit_score >= 680 ? 0 : household.credit_score >= 640 ? 0.25 : 0.75}}",
+                        "loan.ltv_adjustment": "{{loan.ltv_ratio > 80 ? 0.25 : 0}}",
+                        "loan.interest_rate": "{{loan.base_rate + loan.credit_adjustment + loan.ltv_adjustment}}",
+                        "loan.rate_determined": true
+                    }
+                },
+                {
+                    "name": "require_pmi_high_ltv",
+                    "priority": 6,
+                    "if": "loan.ltv_ratio > 80 && insurance.pmi_calculated !== true",
+                    "then": {
+                        "insurance.pmi_required": true,
+                        "insurance.pmi_rate": 0.5,
+                        "insurance.pmi_monthly": "{{(loan.requested_amount * (insurance.pmi_rate / 100)) / 12}}",
+                        "insurance.pmi_calculated": true
+                    }
+                },
+                {
+                    "name": "calculate_monthly_payment",
+                    "priority": 7,
+                    "if": "loan.interest_rate > 0 && loan.monthly_payment === undefined",
+                    "then": {
+                        "loan.monthly_rate": "{{loan.interest_rate / 100 / 12}}",
+                        "loan.num_payments": "{{loan.term_years * 12}}",
+                        "loan.monthly_principal_interest": "{{loan.requested_amount * (loan.monthly_rate * Math.pow(1 + loan.monthly_rate, loan.num_payments)) / (Math.pow(1 + loan.monthly_rate, loan.num_payments) - 1)}}",
+                        "loan.monthly_payment": "{{loan.monthly_principal_interest + (property.property_tax_annual / 12) + (insurance.homeowners_annual / 12) + (property.hoa_monthly || 0) + (insurance.pmi_monthly || 0)}}",
+                        "loan.payment_calculated": true
+                    }
+                },
+                {
+                    "name": "calculate_debt_to_income",
+                    "priority": 8,
+                    "if": "loan.payment_calculated == true && ratios.calculated !== true",
+                    "then": {
+                        "ratios.monthly_income": "{{household.combined_income / 12}}",
+                        "ratios.monthly_debt": "{{household.combined_debt / 12}}",
+                        "ratios.housing_ratio": "{{(loan.monthly_payment / ratios.monthly_income) * 100}}",
+                        "ratios.debt_to_income": "{{((ratios.monthly_debt + loan.monthly_payment) / ratios.monthly_income) * 100}}",
+                        "ratios.calculated": true
+                    }
+                },
+                {
+                    "name": "check_housing_ratio_limit",
+                    "priority": 9,
+                    "if": "ratios.housing_ratio > 0 && approval.housing_ratio_checked !== true",
+                    "then": {
+                        "approval.housing_ratio_status": "{{ratios.housing_ratio <= 28 ? 'pass' : ratios.housing_ratio <= 31 ? 'conditional' : 'fail'}}",
+                        "approval.housing_ratio_checked": true
+                    }
+                },
+                {
+                    "name": "check_debt_to_income_limit",
+                    "priority": 10,
+                    "if": "ratios.debt_to_income > 0 && approval.dti_checked !== true",
+                    "then": {
+                        "approval.dti_status": "{{ratios.debt_to_income <= 36 ? 'pass' : ratios.debt_to_income <= 43 ? 'conditional' : 'fail'}}",
+                        "approval.dti_checked": true
+                    }
+                },
+                {
+                    "name": "check_credit_requirements",
+                    "priority": 11,
+                    "if": "household.credit_score > 0 && approval.credit_checked !== true",
+                    "then": {
+                        "approval.credit_status": "{{household.credit_score >= 740 ? 'excellent' : household.credit_score >= 680 ? 'good' : household.credit_score >= 620 ? 'conditional' : 'insufficient'}}",
+                        "approval.credit_checked": true
+                    }
+                },
+                {
+                    "name": "determine_final_approval",
+                    "priority": 12,
+                    "if": "approval.housing_ratio_checked == true && approval.dti_checked == true && approval.credit_checked == true && approval.final_decision !== true",
+                    "then": {
+                        "approval.can_approve": "{{approval.housing_ratio_status != 'fail' && approval.dti_status != 'fail' && approval.credit_status != 'insufficient'}}",
+                        "approval.status": "{{approval.can_approve ? (approval.housing_ratio_status == 'conditional' || approval.dti_status == 'conditional' || approval.credit_status == 'conditional' ? 'conditional_approval' : 'approved') : 'denied'}}",
+                        "approval.final_decision": true
+                    }
+                },
+                {
+                    "name": "calculate_closing_costs",
+                    "priority": 13,
+                    "if": "approval.status == 'approved' && loan.closing_costs === undefined",
+                    "then": {
+                        "loan.origination_fee": "{{loan.requested_amount * 0.005}}",
+                        "loan.appraisal_fee": 600,
+                        "loan.title_insurance": "{{property.purchase_price * 0.003}}",
+                        "loan.closing_costs": "{{loan.origination_fee + loan.appraisal_fee + loan.title_insurance + 2500}}",
+                        "loan.total_cash_needed": "{{loan.down_payment + loan.closing_costs}}"
+                    }
+                },
+                {
+                    "name": "finalize_loan_processing",
+                    "priority": 14,
+                    "if": "approval.final_decision == true && loan.processed !== true",
+                    "then": {
+                        "loan.processed": true,
+                        "loan.application_date": "{{now()}}",
+                        "loan.reference_number": "{{uuid()}}",
+                        "loan.next_step": "{{approval.status == 'approved' ? 'Schedule appraisal and title search' : approval.status == 'conditional_approval' ? 'Submit additional documentation' : 'Consider alternative financing options'}}"
+                    }
+                }
+            ]
+        };
+
+        // Global engine instance
+        const engine = new AxisRulesEngine();
+        let lastResult = null;
+
+        function processLoan() {
+            try {
+                const inputData = JSON.parse(document.getElementById('inputData').value);
+                const result = engine.apply(inputData, mortgageRules);
+                lastResult = result;
+                
+                displayResults(result);
+            } catch (e) {
+                document.getElementById('output').innerHTML = `
+                    <div class="error">
+                        <h3>Processing Error</h3>
+                        <p>${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayResults(result) {
+            const output = result.output;
+            const approval = output.approval || {};
+            const loan = output.loan || {};
+            const ratios = output.ratios || {};
+            const household = output.household || {};
+            
+            let statusClass = 'status-denied';
+            let statusText = 'Loan Denied';
+            
+            if (approval.status === 'approved') {
+                statusClass = 'status-approved';
+                statusText = 'Loan Approved';
+            } else if (approval.status === 'conditional_approval') {
+                statusClass = 'status-conditional';
+                statusText = 'Conditional Approval';
+            }
+            
+            const formatCurrency = (amount) => {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    maximumFractionDigits: 0
+                }).format(amount || 0);
+            };
+            
+            const formatPercent = (ratio) => {
+                return `${(ratio || 0).toFixed(1)}%`;
+            };
+            
+            document.getElementById('output').innerHTML = `
+                <div class="${statusClass}">
+                    ${statusText}
+                </div>
+                
+                <div class="result-card">
+                    <h3>Loan Summary</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="result-label">Loan Amount:</span>
+                            <span class="result-value">${formatCurrency(loan.requested_amount)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Interest Rate:</span>
+                            <span class="result-value">${formatPercent(loan.interest_rate)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Monthly Payment:</span>
+                            <span class="result-value">${formatCurrency(loan.monthly_payment)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Down Payment:</span>
+                            <span class="result-value">${formatCurrency(loan.down_payment)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">LTV Ratio:</span>
+                            <span class="result-value">${formatPercent(loan.ltv_ratio)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Housing Ratio:</span>
+                            <span class="result-value">${formatPercent(ratios.housing_ratio)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Debt-to-Income:</span>
+                            <span class="result-value">${formatPercent(ratios.debt_to_income)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Credit Score:</span>
+                            <span class="result-value">${household.credit_score || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${loan.closing_costs ? `
+                <div class="result-card">
+                    <h3>Closing Costs</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="result-label">Origination Fee:</span>
+                            <span class="result-value">${formatCurrency(loan.origination_fee)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Appraisal Fee:</span>
+                            <span class="result-value">${formatCurrency(loan.appraisal_fee)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Title Insurance:</span>
+                            <span class="result-value">${formatCurrency(loan.title_insurance)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Closing:</span>
+                            <span class="result-value">${formatCurrency(loan.closing_costs)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Cash Needed:</span>
+                            <span class="result-value">${formatCurrency(loan.total_cash_needed)}</span>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                ${approval.conditions && approval.conditions.length > 0 ? `
+                <div class="conditions-list">
+                    <h4>Approval Conditions</h4>
+                    <ul>
+                        ${approval.conditions.map(condition => `<li>${condition}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+                
+                <div class="result-card">
+                    <h3>Processing Summary</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="result-label">Rules Applied:</span>
+                            <span class="result-value">${result.rulesApplied.length}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Processing Steps:</span>
+                            <span class="result-value">${result.iterations}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Reference #:</span>
+                            <span class="result-value">${loan.reference_number ? loan.reference_number.substring(0, 8) : 'N/A'}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Next Step:</span>
+                            <span class="result-value">${loan.next_step || 'Process incomplete'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showAuditTrail() {
+            if (!lastResult || lastResult.audit.length === 0) {
+                document.getElementById('output').innerHTML = `
+                    <div class="result-card">
+                        <h3>Audit Trail</h3>
+                        <p>No processing history available. Run a loan calculation first.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const auditHtml = lastResult.audit.map(entry => `
+                <div class="audit-entry">
+                    <span class="audit-timestamp">[${entry.timestamp.split('T')[1].split('.')[0]}]</span>
+                    ${entry.message}
+                </div>
+            `).join('');
+
+            document.getElementById('output').innerHTML = `
+                <div class="result-card">
+                    <h3>Processing Audit Trail</h3>
+                    <div class="audit-trail">
+                        ${auditHtml}
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>Rules Applied (${lastResult.rulesApplied.length})</h3>
+                    <p>${lastResult.rulesApplied.join(', ')}</p>
+                </div>
+            `;
+        }
+
+        function loadSample(type) {
+            if (type === 'good') {
+                document.getElementById('inputData').value = JSON.stringify({
+                    "applicant": {
+                        "name": "Michael Rodriguez",
+                        "age": 28,
+                        "employment_status": "full_time",
+                        "annual_income": 145000,
+                        "employment_years": 6,
+                        "credit_score": 780,
+                        "existing_debt": 25000,
+                        "savings": 220000,
+                        "first_time_buyer": true
+                    },
+                    "co_applicant": {
+                        "exists": true,
+                        "annual_income": 125000,
+                        "employment_years": 8,
+                        "credit_score": 760,
+                        "existing_debt": 15000
+                    },
+                    "property": {
+                        "purchase_price": 750000,
+                        "property_type": "single_family",
+                        "location_state": "TX",
+                        "property_tax_annual": 9375,
+                        "hoa_monthly": 180
+                    },
+                    "loan": {
+                        "requested_amount": 600000,
+                        "down_payment": 150000,
+                        "term_years": 30,
+                        "type": "conventional",
+                        "interest_rate": 0,
+                        "processed": false
+                    },
+                    "insurance": {
+                        "homeowners_annual": 3200,
+                        "pmi_required": false,
+                        "pmi_monthly": 0
+                    },
+                    "ratios": {
+                        "calculated": false
+                    },
+                    "approval": {
+                        "status": "pending",
+                        "conditions": [],
+                        "final_decision": false
+                    }
+                }, null, 2);
+            } else if (type === 'poor') {
+                document.getElementById('inputData').value = JSON.stringify({
+                    "applicant": {
+                        "name": "Jennifer Walsh",
+                        "age": 24,
+                        "employment_status": "contract",
+                        "annual_income": 65000,
+                        "employment_years": 1.5,
+                        "credit_score": 590,
+                        "existing_debt": 85000,
+                        "savings": 45000,
+                        "first_time_buyer": true
+                    },
+                    "co_applicant": {
+                        "exists": false
+                    },
+                    "property": {
+                        "purchase_price": 450000,
+                        "property_type": "condo",
+                        "location_state": "CA",
+                        "property_tax_annual": 5625,
+                        "hoa_monthly": 425
+                    },
+                    "loan": {
+                        "requested_amount": 427500,
+                        "down_payment": 22500,
+                        "term_years": 30,
+                        "type": "fha",
+                        "interest_rate": 0,
+                        "processed": false
+                    },
+                    "insurance": {
+                        "homeowners_annual": 2800,
+                        "pmi_required": false,
+                        "pmi_monthly": 0
+                    },
+                    "ratios": {
+                        "calculated": false
+                    },
+                    "approval": {
+                        "status": "pending",
+                        "conditions": [],
+                        "final_decision": false
+                    }
+                }, null, 2);
+            }
+        }
+
+        // Auto-sync form inputs with JSON
+        function syncFormToJson() {
+            try {
+                const data = JSON.parse(document.getElementById('inputData').value);
+                
+                document.getElementById('applicantIncome').value = data.applicant?.annual_income || '';
+                document.getElementById('creditScore').value = data.applicant?.credit_score || '';
+                document.getElementById('purchasePrice').value = data.property?.purchase_price || '';
+                document.getElementById('downPayment').value = data.loan?.down_payment || '';
+            } catch (e) {
+                // Ignore JSON parse errors during typing
+            }
+        }
+
+        function syncJsonToForm() {
+            try {
+                const data = JSON.parse(document.getElementById('inputData').value);
+                
+                const income = parseInt(document.getElementById('applicantIncome').value) || data.applicant?.annual_income || 0;
+                const credit = parseInt(document.getElementById('creditScore').value) || data.applicant?.credit_score || 0;
+                const price = parseInt(document.getElementById('purchasePrice').value) || data.property?.purchase_price || 0;
+                const down = parseInt(document.getElementById('downPayment').value) || data.loan?.down_payment || 0;
+                
+                data.applicant.annual_income = income;
+                data.applicant.credit_score = credit;
+                data.property.purchase_price = price;
+                data.loan.down_payment = down;
+                data.loan.requested_amount = price - down;
+                
+                document.getElementById('inputData').value = JSON.stringify(data, null, 2);
+            } catch (e) {
+                // Ignore errors
+            }
+        }
+
+        // Event listeners for form sync
+        document.getElementById('applicantIncome').addEventListener('input', syncJsonToForm);
+        document.getElementById('creditScore').addEventListener('input', syncJsonToForm);
+        document.getElementById('purchasePrice').addEventListener('input', syncJsonToForm);
+        document.getElementById('downPayment').addEventListener('input', syncJsonToForm);
+        document.getElementById('inputData').addEventListener('input', syncFormToJson);
+
+        // Initialize
+        syncFormToJson();
+    </script>
+</body>
+</html>
