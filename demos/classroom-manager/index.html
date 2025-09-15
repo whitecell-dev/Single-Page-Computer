@@ -421,7 +421,7 @@
         };
 
         // Classroom Rules
-        const classroomRules = {
+        let classroomRules = {
             max_iterations: 10,
             rules: [
                 {
@@ -460,6 +460,50 @@
                 }
             ]
         };
+
+        // --- Persistence Helpers (localStorage) ---
+        function saveToLocalStorage() {
+            try {
+                const inputData = document.getElementById('input-editor').value;
+                const rulesData = document.getElementById('rules-editor')?.value || jsyaml.dump(classroomRules, {indent: 2});
+                
+                const session = {
+                    inputData,
+                    rulesData,
+                    savedAt: new Date().toISOString(),
+                    version: "1.0"
+                };
+                localStorage.setItem('axis-session', JSON.stringify(session));
+            } catch (err) {
+                console.error("Failed to save session:", err);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem('axis-session');
+                if (!raw) return false;
+                
+                const session = JSON.parse(raw);
+                
+                if (session.inputData) {
+                    document.getElementById('input-editor').value = session.inputData;
+                }
+                if (session.rulesData) {
+                    try {
+                        classroomRules = jsyaml.load(session.rulesData);
+                    } catch {
+                        classroomRules = JSON.parse(session.rulesData);
+                    }
+                    const rulesEditor = document.getElementById('rules-editor');
+                    if (rulesEditor) rulesEditor.value = session.rulesData;
+                }
+                return true;
+            } catch (err) {
+                console.error("Failed to load session:", err);
+                return false;
+            }
+        }
 
         // Helper functions
         function parseInput() {
@@ -508,6 +552,8 @@
                 
                 debugDiv.textContent = 
                     `Audit Trail (${result.audit.length} events):\n${result.audit.map(a => `[${a.level.toUpperCase()}] ${a.message}`).join('\n')}`;
+                
+                saveToLocalStorage();
                     
             } catch (error) {
                 resultsDiv.className = 'output error';
@@ -538,6 +584,8 @@
                 
                 debugDiv.textContent = 
                     `Full Debug Log (${result.audit.length} events):\n${result.audit.map(a => `[${a.timestamp}] [${a.level.toUpperCase()}] ${a.message}`).join('\n')}`;
+                
+                saveToLocalStorage();
                     
             } catch (error) {
                 resultsDiv.className = 'output error';
@@ -557,7 +605,45 @@
             }
             
             // Reset rules to original
-            classroomRules = JSON.parse(JSON.stringify(originalRules));
+            classroomRules = {
+                max_iterations: 10,
+                rules: [
+                    {
+                        name: "calculate_attendance_rate",
+                        priority: 1,
+                        if: "students && students.length > 0",
+                        then: {
+                            "students": "{{students.map(s => ({...s, attendance_rate: Math.round((s.attendance / 20) * 100)}))}}"
+                        }
+                    },
+                    {
+                        name: "calculate_assignment_completion",
+                        priority: 2,
+                        if: "students && students.length > 0",
+                        then: {
+                            "students": "{{students.map(s => ({...s, completion_rate: Math.round((s.assignments_completed / s.assignments_total) * 100)}))}}"
+                        }
+                    },
+                    {
+                        name: "assign_academic_status",
+                        priority: 3,
+                        if: "students && students.length > 0",
+                        then: {
+                            "students": "{{students.map(s => ({...s, academic_status: s.completion_rate >= 90 && s.last_assignment_score >= 8.5 ? 'excellent' : s.completion_rate >= 75 && s.last_assignment_score >= 7.0 ? 'good' : s.completion_rate >= 60 ? 'needs_support' : 'at_risk'}))}}"
+                        }
+                    },
+                    {
+                        name: "calculate_class_stats",
+                        priority: 7,
+                        if: "students && students.length > 0",
+                        then: {
+                            "classroom.total_students": "{{students.length}}",
+                            "classroom.avg_attendance": "{{Math.round(students.reduce((sum, s) => sum + s.attendance_rate, 0) / students.length)}}",
+                            "classroom.avg_completion": "{{Math.round(students.reduce((sum, s) => sum + s.completion_rate, 0) / students.length)}}"
+                        }
+                    }
+                ]
+            };
             
             // Update rules editor if it's visible
             const rulesEditor = document.getElementById('rules-editor');
@@ -570,6 +656,7 @@
             }
             
             document.getElementById('parse-error').style.display = 'none';
+            saveToLocalStorage();
         }
 
         function toggleRulesEditor() {
@@ -619,6 +706,8 @@
                 // Clear debug log
                 document.getElementById('debug').textContent = 'Rules updated. Ready to run with new configuration.';
                 
+                saveToLocalStorage();
+                
             } catch (error) {
                 alert(`Error parsing rules: ${error.message}\n\nPlease check your YAML/JSON syntax.`);
             }
@@ -634,11 +723,15 @@
             document.getElementById('results').className = 'output';
             document.getElementById('debug').textContent = 'Debug output will appear here...';
             document.getElementById('parse-error').style.display = 'none';
+            saveToLocalStorage();
         }
 
         // Initialize with default data on page load
         window.onload = function() {
-            resetToDefaults();
+            const loaded = loadFromLocalStorage();
+            if (!loaded) {
+                resetToDefaults();
+            }
             runEngineTest();
         };
     </script>
