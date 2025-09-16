@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Engine with Visualizations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .simulation-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        h2 {
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        
+        canvas {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            width: 100%;
+            height: 400px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: #3a7bc8;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .physics-explanation {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            grid-column: 1 / -1;
+        }
+        
+        .explanation-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .explanation-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .concept {
+            margin-bottom: 20px;
+        }
+        
+        .concept h3 {
+            color: #fdbb2d;
+            margin-bottom: 10px;
+        }
+        
+        .concept p {
+            line-height: 1.6;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .stat h4 {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+        
+        .stat p {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Physics Engine Simulation</h1>
+            <p class="subtitle">Explore how physics engines work with interactive visualizations</p>
+        </header>
+        
+        <div class="content">
+            <div class="simulation-container">
+                <h2>Particle Simulation</h2>
+                <canvas id="physicsCanvas"></canvas>
+                <div class="stats">
+                    <div class="stat">
+                        <h4>PARTICLES</h4>
+                        <p id="particleCount">0</p>
+                    </div>
+                    <div class="stat">
+                        <h4>FPS</h4>
+                        <p id="fpsCounter">0</p>
+                    </div>
+                    <div class="stat">
+                        <h4>ENERGY</h4>
+                        <p id="energyCounter">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <h2>Simulation Controls</h2>
+                
+                <div class="control-group">
+                    <label for="gravitySlider">Gravity Strength</label>
+                    <input type="range" id="gravitySlider" min="0" max="20" value="9.8" step="0.1">
+                    <div class="value-display">
+                        <span>Low</span>
+                        <span id="gravityValue">9.8 m/s²</span>
+                        <span>High</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="frictionSlider">Friction Coefficient</label>
+                    <input type="range" id="frictionSlider" min="0" max="10" value="3" step="0.1">
+                    <div class="value-display">
+                        <span>Slippery</span>
+                        <span id="frictionValue">0.3</span>
+                        <span>Sticky</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="elasticitySlider">Elasticity (Bounciness)</label>
+                    <input type="range" id="elasticitySlider" min="0" max="10" value="7" step="0.1">
+                    <div class="value-display">
+                        <span>Absorbent</span>
+                        <span id="elasticityValue">0.7</span>
+                        <span>Bouncy</span>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="addParticleBtn">Add Particles</button>
+                    <button id="resetBtn">Reset Simulation</button>
+                    <button id="pauseBtn">Pause/Resume</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="physics-explanation">
+            <h2>How Physics Engines Work</h2>
+            <div class="explanation-content">
+                <div class="concept">
+                    <h3>Particle System</h3>
+                    <p>Particles are the basic units in many physics simulations. Each particle has properties like position, velocity, mass, and forces acting upon it.</p>
+                </div>
+                
+                <div class="concept">
+                    <h3>Forces & Motion</h3>
+                    <p>Newton's laws of motion govern how particles move. Forces like gravity, friction, and collisions are calculated each frame to update particle positions.</p>
+                </div>
+                
+                <div class="concept">
+                    <h3>Collision Detection</h3>
+                    <p>The engine detects when particles collide with each other or boundaries, then calculates appropriate responses based on physics principles.</p>
+                </div>
+                
+                <div class="concept">
+                    <h3>Numerical Integration</h3>
+                    <p>Equations of motion are solved using numerical methods like Euler integration or Verlet integration to approximate continuous physics in discrete time steps.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('physicsCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        // Physics constants
+        let GRAVITY = 9.8;
+        let FRICTION = 0.3;
+        let ELASTICITY = 0.7;
+        let paused = false;
+        
+        // Particle class
+        class Particle {
+            constructor(x, y, radius) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius || Math.random() * 10 + 5;
+                this.mass = this.radius * 0.1;
+                
+                // Random initial velocity
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                
+                // Random color
+                this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+            }
+            
+            update(deltaTime) {
+                // Apply gravity
+                this.vy += GRAVITY * deltaTime;
+                
+                // Update position
+                this.x += this.vx * deltaTime;
+                this.y += this.vy * deltaTime;
+                
+                // Handle boundary collisions
+                if (this.x - this.radius < 0) {
+                    this.x = this.radius;
+                    this.vx = -this.vx * ELASTICITY;
+                } else if (this.x + this.radius > canvas.width) {
+                    this.x = canvas.width - this.radius;
+                    this.vx = -this.vx * ELASTICITY;
+                }
+                
+                if (this.y - this.radius < 0) {
+                    this.y = this.radius;
+                    this.vy = -this.vy * ELASTICITY;
+                } else if (this.y + this.radius > canvas.height) {
+                    this.y = canvas.height - this.radius;
+                    this.vy = -this.vy * ELASTICITY;
+                    
+                    // Apply friction when hitting the bottom
+                    this.vx *= (1 - FRICTION * deltaTime);
+                }
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+                
+                // Draw velocity vector
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.vx, this.y + this.vy);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
+        
+        // Particle system
+        let particles = [];
+        
+        // Initialize with some particles
+        function initParticles(count) {
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(
+                    Math.random() * (canvas.width - 50) + 25,
+                    Math.random() * (canvas.height - 100) + 25
+                ));
+            }
+        }
+        
+        // Check for collisions between particles
+        function checkCollisions() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p1 = particles[i];
+                    const p2 = particles[j];
+                    
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < p1.radius + p2.radius) {
+                        // Collision detected - simple response
+                        const angle = Math.atan2(dy, dx);
+                        const overlap = (p1.radius + p2.radius) - distance;
+                        
+                        // Move particles apart
+                        p1.x -= overlap * Math.cos(angle) * 0.5;
+                        p1.y -= overlap * Math.sin(angle) * 0.5;
+                        p2.x += overlap * Math.cos(angle) * 0.5;
+                        p2.y += overlap * Math.sin(angle) * 0.5;
+                        
+                        // Calculate new velocities (conservation of momentum)
+                        const vx1 = p1.vx;
+                        const vy1 = p1.vy;
+                        const vx2 = p2.vx;
+                        const vy2 = p2.vy;
+                        
+                        p1.vx = vx2 * ELASTICITY;
+                        p1.vy = vy2 * ELASTICITY;
+                        p2.vx = vx1 * ELASTICITY;
+                        p2.vy = vy1 * ELASTICITY;
+                    }
+                }
+            }
+        }
+        
+        // Calculate total energy in the system
+        function calculateEnergy() {
+            let energy = 0;
+            for (const particle of particles) {
+                // Kinetic energy: 0.5 * m * v^2
+                const kinetic = 0.5 * particle.mass * 
+                               (particle.vx * particle.vx + particle.vy * particle.vy);
+                // Potential energy: m * g * h
+                const potential = particle.mass * GRAVITY * (canvas.height - particle.y);
+                energy += kinetic + potential;
+            }
+            return energy;
+        }
+        
+        // Animation loop
+        let lastTime = 0;
+        let frameCount = 0;
+        let lastFpsUpdate = 0;
+        let fps = 0;
+        
+        function animate(currentTime) {
+            requestAnimationFrame(animate);
+            
+            if (paused) return;
+            
+            // Calculate delta time in seconds
+            const deltaTime = lastTime ? (currentTime - lastTime) / 1000 : 0.016;
+            lastTime = currentTime;
+            
+            // Update FPS counter once per second
+            frameCount++;
+            if (currentTime - lastFpsUpdate >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsUpdate = currentTime;
+                
+                // Update stats display
+                document.getElementById('fpsCounter').textContent = fps;
+                document.getElementById('particleCount').textContent = particles.length;
+                document.getElementById('energyCounter').textContent = 
+                    Math.round(calculateEnergy() * 100) / 100;
+            }
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(26, 42, 108, 0.8)');
+            gradient.addColorStop(1, 'rgba(253, 187, 45, 0.3)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw boundary
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw particles
+            for (const particle of particles) {
+                particle.update(deltaTime);
+                particle.draw();
+            }
+            
+            // Check for collisions
+            checkCollisions();
+        }
+        
+        // Initialize the simulation
+        initParticles(15);
+        
+        // Start animation
+        requestAnimationFrame(animate);
+        
+        // Event listeners for controls
+        document.getElementById('gravitySlider').addEventListener('input', function() {
+            GRAVITY = parseFloat(this.value);
+            document.getElementById('gravityValue').textContent = GRAVITY.toFixed(1) + ' m/s²';
+        });
+        
+        document.getElementById('frictionSlider').addEventListener('input', function() {
+            FRICTION = parseFloat(this.value) / 10;
+            document.getElementById('frictionValue').textContent = FRICTION.toFixed(1);
+        });
+        
+        document.getElementById('elasticitySlider').addEventListener('input', function() {
+            ELASTICITY = parseFloat(this.value) / 10;
+            document.getElementById('elasticityValue').textContent = ELASTICITY.toFixed(1);
+        });
+        
+        document.getElementById('addParticleBtn').addEventListener('click', function() {
+            for (let i = 0; i < 5; i++) {
+                particles.push(new Particle(
+                    Math.random() * (canvas.width - 50) + 25,
+                    Math.random() * 50 + 10
+                ));
+            }
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            initParticles(15);
+        });
+        
+        document.getElementById('pauseBtn').addEventListener('click', function() {
+            paused = !paused;
+            if (!paused) {
+                lastTime = 0; // Reset time to avoid large delta after pause
+                requestAnimationFrame(animate);
+            }
+        });
+        
+        // Update canvas size when window resizes
+        window.addEventListener('resize', function() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        });
+        
+        // Initial control values
+        document.getElementById('gravityValue').textContent = GRAVITY.toFixed(1) + ' m/s²';
+        document.getElementById('frictionValue').textContent = FRICTION.toFixed(1);
+        document.getElementById('elasticityValue').textContent = ELASTICITY.toFixed(1);
+    </script>
+</body>
+</html>
