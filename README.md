@@ -1,111 +1,307 @@
 # 🖥️ Single Page Computer (SPC)
 
-> **What if a single browser tab could act as a complete computer?**
-
-The **Single Page Computer (SPC)** is a new architectural model that treats a web page not as a document, but as a **self-contained operating system**.  
-Each SPC app packages **data**, **rules**, and a **UI** into a static HTML/JS file that runs entirely client-side — no backend, no servers, no frameworks.
+**The nvim of the browser.**
+A single tab becomes a complete computer: state, logic, and UI — all in text.
 
 ---
 
-## 🌐 Why SPC?
+## 🌐 The Browser Evolution
 
-For decades, browsers were seen as **dumb terminals** connected to powerful servers. SPC flips that:  
-the **browser itself becomes the runtime**.
+### Before Static Hosting (Pre-2016)
 
-An SPC application is structured like this:
+```
+Browser = Document Viewer
+├── HTML (static markup)
+├── CSS (styling)
+└── JS (basic interactivity)
 
-- **Data (`data.json`)** → The state of the world. Pure JSON.  
-- **Logic (`rules.axis`)** → Declarative rules for transforming state. Pure functions.  
-- **UI (`index.html`)** → A static presentation layer. Just displays state and captures user input.  
-- **Engine (`axis-rules.js`)** → The “CPU” that applies rules to data deterministically.  
+Real Applications Required:
+├── Backend Server (PHP/Rails/Node)
+├── Database
+├── Paid Hosting
+└── Infrastructure Management
+```
 
-Together, these create a **portable operating system in a tab**.
+### After GitHub Pages Era (2016+)
 
----
+```
+Browser = Application Runtime
+├── React SPAs (bundled)
+├── JAMstack + APIs
+├── Client-side Games
+└── Static Site Generators
 
-## ⚡ Key Properties
+But Still Dependent On:
+├── External APIs
+├── Build Processes
+├── Backend Services
+└── Network Connectivity
+```
 
-- **Zero Infrastructure** → Deploy to GitHub Pages, Netlify, or any static host.  
-- **Deterministic** → Business logic is declarative and verifiable.  
-- **User Sovereignty** → Data lives entirely in the browser (IndexedDB/localStorage).  
-- **Portable** → Share an SPC with nothing more than a URL.  
-- **Composable** → Swap out data, rules, or UI independently.  
+### SPC Era (Now)
 
----
+```
+Browser = Self-Contained Computer
+├── State (JSON files)
+├── Logic (YAML/AXIS rules)
+├── Engine (deterministic execution)
+└── UI (thin rendering layer)
 
-## 🛠️ Examples
-
-This repo is a **hub of SPC demos**. Each one lives in its own folder as a complete, static app.
-
-### Mortgage Calculator
-📂 [`/mortgage-calculator`](mortgage-calculator)  
-A 19-rule loan decision engine that runs entirely in your browser.  
-Features:
-- Calculates combined income, LTV, PMI, interest rates
-- Applies approval rules based on housing ratio, DTI, and credit score
-- Produces audit trails and conditional approvals  
-➡️ [Live Demo](https://yourusername.github.io/single-page-computer/mortgage-calculator)
-
----
-
-### Order Processing Workflow
-📂 [`/order-processing`](order-processing)  
-An e-commerce pipeline demo with promotions, fraud checks, shipping logic, and loyalty points.  
-➡️ [Live Demo](https://yourusername.github.io/single-page-computer/order-processing)
-
----
-
-### Loyalty Points Engine
-📂 [`/loyalty-points`](loyalty-points)  
-A rules-driven loyalty system that upgrades tiers and awards bonuses deterministically.  
-➡️ [Live Demo](https://yourusername.github.io/single-page-computer/loyalty-points)
+Zero Dependencies:
+├── No backend required
+├── No build process
+├── No external APIs
+└── Runs offline
+```
 
 ---
 
-(More examples coming soon: CRM, task tracker, inventory OS…)
+## 📏 Scaling Beyond a Single File
+
+An SPC can live entirely in **one HTML file**. That makes demos, distribution, and sharing dead simple.
+
+But once you cross a few hundred lines, a monolithic file becomes unmanageable.
+
+**Recommended Split Strategy**:
+
+* `index.html` → UI shell (minimal HTML)
+* `engine.js` → SPC rules engine
+* `rules.yaml` → Declarative logic
+* `data.json` → Application state
+* `app.js` → Glue code (wiring engine + UI)
+* `sw.js` → Optional Service Worker for offline
+
+This preserves the “single-file magic” for tiny apps but keeps larger SPC projects sane and collaborative.
 
 ---
 
-## 🧩 Philosophy
+## 🤖 SPC is AI-Native
 
-SPC is built on the same ideas as [KERN](https://github.com/yourusername/kern) and [AXIS](https://github.com/yourusername/axis):
+SPC is designed for the **AI era**:
 
-- **Rules = Programs**  
-- **JSON = State**  
-- **Browser = OS**  
+* **Rules as prompts**: JSON/YAML rules are simple enough for LLMs to read and generate.
+* **Composable logic**: Instead of black-box code, SPC apps expose human-readable rules.
+* **Offline-first**: Lightweight enough to run with local or edge models.
+* **Interpretable by design**: Deterministic execution means every AI-suggested change can be replayed and audited.
 
-This unlocks a **deterministic alternative** to JAMstack apps.  
-Where JAMstack entangles UI, APIs, and AI at runtime, SPC keeps them **separated and declarative**.
+**Core Idea**: AI doesn’t replace SPC — it becomes your **co-pilot for editing rules and generating apps**.
 
 ---
 
-## 🚀 Getting Started
+## 📝 Why Text-as-Computer Changes Everything
 
-Clone the repo and open any demo in your browser:
+SPC treats **text files as computational primitives**:
+
+| Component     | Format       | Purpose                       |
+| ------------- | ------------ | ----------------------------- |
+| **State**     | `data.json`  | The world as data             |
+| **Logic**     | `rules.yaml` | Deterministic transformations |
+| **Engine**    | `axis.js`    | Execution runtime             |
+| **Interface** | `index.html` | Thin rendering layer          |
+
+This separation enables:
+
+* **Hot-edit logic** without redeploying
+* **Version control** your entire application
+* **Deterministic execution** across any browser
+* **Zero infrastructure** dependencies
+
+Think `vim + jq + SQLite` running entirely in a browser tab.
+
+---
+
+## 🔮 SPC = nvim for the Browser
+
+### Text-First Philosophy
+
+* **nvim**: "Everything is a text file"
+* **SPC**: "Everything is JSON/YAML rules"
+
+### Deterministic Core
+
+* **nvim**: Keystrokes → predictable buffer transformations
+* **SPC**: Rules → deterministic state transformations
+
+### Composable Architecture
+
+* **nvim**: Plugins extend core functionality
+* **SPC**: Rule sets define application behavior
+
+### User Sovereignty
+
+* **nvim**: Runs on your terminal, dotfiles define behavior
+* **SPC**: Runs in your browser, text files define logic
+
+### Lightweight Runtime
+
+* **nvim**: Minimal editor that becomes whatever you need
+* **SPC**: Minimal engine that becomes whatever you define
+
+**Core Insight**: Both collapse complex infrastructure into portable, text-based environments that users fully control.
+
+---
+
+## 🌍 How GitHub Pages Works for SPC Applications
+
+GitHub Pages is more powerful than it looks:
+
+### Capabilities
+
+* **Full JavaScript Applications**: Host SPC engines, not just static HTML.
+* **Client-Side Storage**: Persist data with `localStorage` or IndexedDB.
+* **Offline Functionality**: Add a Service Worker so SPC runs without internet.
+* **Automatic Deployment**: Every push to `main` updates the live app.
+
+### Addressing Offline Use
+
+* **Service Worker Approach**: Cache resources for full offline PWA experience.
+* **Simple Download Approach**: Users can “Save Page As…” to keep a working local copy.
+
+### Key Advantages
+
+* **Zero Cost**: Free hosting, forever.
+* **Simple Deployment**: Push code → live in seconds.
+* **Automatic HTTPS**: Secure by default.
+* **Global CDN**: Fast worldwide delivery.
+* **Version Control**: Every iteration is tracked.
+
+👉 This makes GitHub Pages the **ideal platform for SPC**: simple, free, and perfectly matched to SPC’s philosophy of **text-first, self-contained computing**.
+
+---
+
+## 🧩 Live Examples
+
+### Financial Analytics Engine
+
+**Demo**: [Portfolio Analyzer](https://example.com/portfolio)
+
+* Real-time ROI calculations
+* Risk assessment algorithms
+* Performance tracking
+* *Runs entirely client-side*
+
+### Workflow Automation
+
+**Demo**: [Order Processing](https://example.com/orders)
+
+* Multi-step approval workflows
+* Conditional business logic
+* State machine execution
+* *No backend required*
+
+### Interactive Presentations
+
+**Demo**: [PowerPoint++](https://example.com/slides)
+
+* Programmable slide logic
+* Embedded mini-applications
+* Live rule editing
+* *Portable as single file*
+
+---
+
+## ⚙️ Quick Start
 
 ```bash
-git clone https://github.com/yourusername/single-page-computer.git
-cd single-page-computer/mortgage-calculator
-open index.html
+# Clone any SPC application
+curl -O https://example.com/spc-app.html
 
-No build step. No install. Just open the file.
+# Open in browser
+open spc-app.html
 
-🧪 Roadmap
-Add more SPC demos (CRM, task tracker, resume OS)
-Document the SPC pattern like a design RFC
-Explore integrations with MNEME
-Provide a boilerplate template for new SPC apps
+# Edit the rules
+vim spc-app.html  # Find <script type="application/yaml">
+```
 
-📜 License
+That’s it. No installation. No build step. **Just text.**
 
-MIT — open for experimentation, remixing, and extension.
+---
 
-💡 Inspiration
+## 📜 The SPC Pattern
 
-SPC takes inspiration from:
+Every SPC application follows this structure:
 
-Unix philosophy → small, composable tools
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My SPC App</title>
+  <script src="https://cdn.jsdelivr.net/npm/axis-engine"></script>
+</head>
+<body>
+  <div id="app"></div>
+  
+  <script type="application/yaml" id="rules">
+    rules:
+      - name: "calculate_total"
+        when: "items.length > 0"
+        then:
+          total: "{{ items.reduce((sum, item) => sum + item.price, 0) }}"
+  </script>
+  
+  <script type="application/json" id="data">
+    {
+      "items": [],
+      "total": 0
+    }
+  </script>
+  
+  <script>
+    const engine = new AxisEngine();
+    engine.loadRules(document.getElementById('rules').textContent);
+    engine.loadData(JSON.parse(document.getElementById('data').textContent));
+    engine.render(document.getElementById('app'));
+  </script>
+</body>
+</html>
+```
 
-jq / SQL → declarative data transformation
+**Key Properties**:
 
-Web browsers → the world’s most universal runtime
+* Self-contained (single file)
+* Human-readable (all text)
+* Version-controllable (Git-friendly)
+* Deterministic (same input = same output)
+* Portable (runs anywhere with a browser)
+
+---
+
+## 🧠 Philosophical Foundation
+
+SPC embodies three principles:
+
+1. **Text as Universal Interface** → Like nvim’s buffers, SPC treats text as the abstraction layer.
+2. **Deterministic Execution** → Rules yield exact state transformations.
+3. **User Sovereignty** → No cloud lock-in, no server dependency.
+
+---
+
+## 🧪 Roadmap
+
+* Formalize AXIS rule syntax specification
+* Add MNEME for verifiable state logging
+* Release SPC debugging extension
+* Publish boilerplate SPC templates
+
+---
+
+## 🌟 Inspiration
+
+SPC synthesizes:
+
+* **Unix Philosophy** → Small, composable, text tools
+* **nvim** → Text-first extensible computing
+* **Functional Programming** → Deterministic transforms
+* **Web Standards** → Universal browser runtime
+
+The result: **a portable operating system that fits in a single file.**
+
+---
+
+## 📄 License
+
+MIT — Build, remix, and extend freely.
+
+
+
+
