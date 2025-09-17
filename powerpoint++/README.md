@@ -1,185 +1,249 @@
-# PowerPoint++ — LLM-Native App Deck OS
+# MicroService OS — AI-Native Computing Environment
 
-**A browser-native runtime for declarative applications.**
+**A terminal with a GUI, where bash scripts are JSON/YAML.**
 
-PowerPoint++ transforms how we build, share, and execute interactive applications. Write logic in JSON/YAML, render it as live apps, generate it with LLMs, and run it anywhere with zero infrastructure.
+MicroService OS transforms the command-line paradigm for the AI era. Each service runs in isolation with declarative configuration, visual interfaces, and zero infrastructure dependencies. Build, deploy, and orchestrate microservices directly in your browser.
 
 ```
-Traditional Stack:          PowerPoint++:
+Traditional Terminal:        MicroService OS:
 ┌─────────────────┐          ┌─────────────────┐
-│ React Frontend  │          │ JSON Slides     │
-│ Node.js Backend │    →     │ Logic Engine    │
-│ Database        │          │ Browser Runtime │
-│ Server Deploy   │          │ Single File     │
+│ bash/zsh shell  │          │ Service Runtime │
+│ .sh scripts     │    →     │ JSON/YAML specs │
+│ CLI tools       │          │ Visual Interface│
+│ Text output     │          │ GUI Services    │
 └─────────────────┘          └─────────────────┘
 ```
 
-## Core Architecture
+## Architecture: Services as First-Class Citizens
 
-### Slides as Micro-Applications
-
-Each slide is a self-contained application defined by JSON rules:
+### Service Definition
+Each service is a self-contained JSON specification:
 
 ```json
 {
-  "id": "roi-calc",
-  "type": "interactive", 
-  "title": "ROI Calculator",
-  "rules": {
-    "inputs": [
-      {"name": "initial", "label": "Initial Investment", "type": "number", "default": 1000},
-      {"name": "final", "label": "Final Value", "type": "number", "default": 1200}
+  "id": "api-monitor",
+  "type": "spc",
+  "title": "API Health Monitor",
+  "spec": {
+    "endpoints": [
+      {"name": "auth", "url": "https://api.example.com/health"},
+      {"name": "data", "url": "https://api.example.com/status"}
     ],
-    "calculation": "((inputs.final - inputs.initial) / inputs.initial) * 100",
-    "result_format": "ROI: {result}%"
+    "interval": 30000,
+    "rules": [
+      {
+        "name": "health_check",
+        "if": "response.status >= 200 && response.status < 300",
+        "then": {"status": "healthy", "color": "green"}
+      }
+    ]
   }
 }
 ```
 
-### Slide Types
+### Service Types
 
-- **`static`** — Content and documentation
-- **`interactive`** — Forms, calculators, input processors  
-- **`game`** — Logic-driven interactive experiences
-- **`spc`** — API fetchers with rule-based transformations
-- **`agent`** — LLM-generated or self-modifying slides
+- **`monitor`** — Health checks, log tails, system status
+- **`processor`** — Data transformations, calculators, parsers
+- **`interface`** — Forms, dashboards, configuration panels
+- **`connector`** — API clients, data fetchers, integrations
+- **`agent`** — LLM-powered services that modify themselves
 
-### Decks as Applications
+### Service Orchestration
 
-A deck is a portable app bundle — an array of slides with shared state:
+Services communicate through shared state and event streams:
 
 ```json
 {
-  "meta": {"title": "Financial Tools", "version": 1},
-  "slides": [
-    {"id": "intro", "type": "static", "rules": {...}},
-    {"id": "calculator", "type": "interactive", "rules": {...}},
-    {"id": "api-data", "type": "spc", "rules": {...}}
+  "services": [
+    {"id": "data-fetch", "type": "connector", "outputs": ["user_data"]},
+    {"id": "data-transform", "type": "processor", "inputs": ["user_data"]},
+    {"id": "dashboard", "type": "interface", "displays": ["transformed_data"]}
   ]
 }
 ```
 
-## Key Features
+## AI-Native Design
 
-### LLM-Native Authoring
-- Generate slides from natural language descriptions
-- AI agents can create and modify their own interfaces
-- Human-readable JSON that LLMs understand natively
-
-### Zero Infrastructure  
-- Runs entirely in browser with no backend required
-- Auto-saves to localStorage
-- Import/export as single JSON files
-- Offline-capable applications
-
-### Live Logic Engine
-- Evaluates `{{ expressions }}` in real-time
-- Reactive state management
-- Rule-based transformations
-- API integration with response processing
-
-## Use Cases
-
-**Internal Tools**
-- Custom dashboards and admin panels
-- Compliance calculators and checklists
-- Team utilities and workflow automation
-
-**Education & Training**
-- Interactive tutorials with embedded logic
-- Assessment tools with dynamic scoring
-- Concept visualization with live examples
-
-**Developer Tools**
-- API testing and visualization interfaces
-- Configuration generators
-- Debug dashboards with real-time data
-
-**LLM Applications**
-- AI agents that render custom interfaces
-- Dynamic form generation from requirements
-- Self-explaining applications with embedded context
-
-## Quick Start
-
-```bash
-# Clone or download the HTML file
-curl -O https://example.com/powerpoint-plus.html
-
-# Open in browser
-open powerpoint-plus.html
-
-# Start building slides with JSON
+### Natural Language → Service Specs
 ```
-
-No build process. No installation. Just open and use.
-
-## API Integration Example
-
-```json
+"Monitor Bitcoin price and alert when it drops below $50k"
+     ↓
 {
-  "type": "spc",
-  "rules": {
-    "init": {"price": 0, "status": "unknown"},
-    "fetch": {
-      "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-    },
-    "rules": {
-      "rules": [
-        {
-          "name": "categorize_price",
-          "if": "price > 0", 
-          "then": {
-            "status": "{{ price > 100000 ? 'moon' : price > 50000 ? 'expensive' : 'cheap' }}"
-          }
-        }
-      ]
-    }
+  "type": "monitor",
+  "spec": {
+    "source": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+    "condition": "data.bitcoin.usd < 50000",
+    "action": "alert"
   }
 }
 ```
 
-This fetches Bitcoin prices and applies business logic to categorize them, all declared in JSON.
+### LLM Service Generation
+- AI agents can create, modify, and deploy services
+- Human-readable configurations enable AI understanding
+- Self-documenting service specifications
+- Collaborative human-AI development workflows
 
-## Development Philosophy
+## Core Benefits
 
-### Apps Should Be Declarative
-Complex behavior emerges from simple, composable rules rather than imperative code.
+### Zero Infrastructure
+- No containers, orchestrators, or service mesh required
+- Runs entirely in browser with optional desktop runtime
+- Services persist in localStorage or exportable files
+- Instant deployment and scaling
 
-### Logic Should Be Inspectable  
-All application behavior is visible as human-readable text, not hidden in compiled binaries.
+### Visual Service Management
+- Real-time service status and logs
+- Interactive configuration editing
+- Drag-and-drop service composition
+- Visual dependency mapping
 
-### LLMs Should Generate Structure
-AI systems can author, modify, and explain applications by manipulating structured data.
+### Declarative Everything
+- Services defined by specifications, not code
+- Deterministic behavior from text-based rules
+- Version control friendly (pure JSON/YAML)
+- Easy testing and debugging
 
-### Users Should Own Execution
-Applications run locally under user control without dependencies on external services.
+## Use Cases
+
+### Development Operations
+- API monitoring and health dashboards
+- Log aggregation and analysis
+- Configuration management interfaces
+- Deployment pipeline visualization
+
+### Business Automation
+- Data processing workflows
+- Compliance monitoring systems
+- Customer dashboard generators
+- Integration service management
+
+### Personal Productivity
+- Custom tool interfaces
+- Data analysis pipelines
+- Task automation services
+- Information aggregation dashboards
+
+## Service Ecosystem
+
+### Built-in Service Types
+```bash
+# List available service types
+services list-types
+
+# Create new service from template
+services create --type=monitor --name=api-health
+
+# Deploy service to runtime
+services deploy api-health.json
+
+# View running services
+services ps
+```
+
+### Service Registry
+- Shareable service definitions
+- Community-contributed templates
+- Version management and updates
+- Dependency resolution
+
+## Comparison to Traditional Architectures
+
+| Traditional Microservices | MicroService OS |
+|---------------------------|-----------------|
+| Docker containers | JSON service specs |
+| Kubernetes orchestration | Browser runtime |
+| Service mesh networking | Shared state communication |
+| YAML deployment configs | Visual service editor |
+| CI/CD pipelines | Instant deployment |
+| Infrastructure teams | Individual developers |
+
+## Technical Architecture
+
+### Service Runtime
+- Sandboxed execution environment
+- Resource monitoring and limits
+- Inter-service communication bus
+- State persistence layer
+
+### Configuration Engine
+- JSON Schema validation
+- Template expansion and variables
+- Environment-specific overrides
+- Hot reloading capabilities
+
+### Visual Interface
+- Service topology visualization
+- Real-time metrics and logging
+- Interactive debugging tools
+- Configuration form generation
+
+## Development Workflow
+
+```bash
+# 1. Define service specification
+echo '{"type": "processor", "spec": {...}}' > my-service.json
+
+# 2. Test locally
+services run my-service.json
+
+# 3. Deploy to runtime
+services deploy my-service.json
+
+# 4. Monitor and iterate
+services logs my-service
+services edit my-service
+```
 
 ## Roadmap
 
-### Near Term
-- Plugin API for custom slide types
-- Deck registry and sharing system  
-- Enhanced LLM integration for slide generation
-- Theme system and visual customization
+### Core Platform
+- Service dependency resolution
+- Advanced inter-service communication
+- Plugin architecture for custom service types
+- Performance monitoring and optimization
 
-### Future Vision
-- Compile decks to WebAssembly, Lua, or native code
-- Hardware integration (RISC-V, embedded systems)
-- Blockchain verification layer (MNEME audit trails)
-- Desktop runtime for offline applications
+### AI Integration
+- Natural language service generation
+- Automated service optimization
+- Intelligent error handling and recovery
+- Self-healing service networks
 
-## Technical Foundation
+### Enterprise Features
+- Multi-tenant service isolation
+- Role-based access control
+- Audit logging and compliance
+- Enterprise service registry
 
-PowerPoint++ implements the Single Page Computer (SPC) pattern:
+## Philosophy
 
-- **Text-based definitions** replace compiled code
-- **Deterministic execution** ensures predictable behavior  
-- **Client-side evaluation** eliminates server dependencies
-- **Rule-based logic** enables LLM generation and modification
+### Services Should Be Declarative
+Complex distributed systems emerge from simple, composable service definitions rather than imperative orchestration code.
 
-This represents a fundamental shift from infrastructure-dependent applications to portable, declarative computing environments.
+### Configuration Should Be Visual
+GUI interfaces enable faster iteration and broader accessibility compared to YAML editing in terminals.
+
+### AI Should Generate Infrastructure
+LLMs can understand and generate service specifications more easily than traditional code, enabling AI-native development workflows.
+
+### Users Should Own Their Stack
+Services run locally under user control without dependencies on cloud providers or platform vendors.
+
+## Getting Started
+
+```bash
+# Download the runtime
+curl -O https://microservice.os/runtime.html
+
+# Open in browser
+open runtime.html
+
+# Create your first service
+```
+
+MicroService OS represents a fundamental shift from infrastructure-heavy distributed systems to lightweight, declarative, AI-composable service architectures.
 
 ## License
 
-MIT — Build, remix, and extend freely.
+MIT — Build your service ecosystem freely.
