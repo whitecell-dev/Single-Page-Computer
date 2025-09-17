@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PowerPoint++ — SPC Slides (Minimal)</title>
+  <style>
+    :root{
+      --bg:#0b1020;--panel:#0f172a;--panel2:#0b1327;--ink:#e5e7eb;--muted:#9ca3af;--ring:rgba(124,58,237,.35);
+      --accent:#7c3aed;--ok:#34d399;--bad:#f87171;--info:#60a5fa;--warn:#fbbf24
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(135deg,#0b1020,#0a0f1f 40%,#0e1326);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .app{display:grid;grid-template-columns:280px 1fr;gap:12px;max-width:1200px;margin:18px auto;padding:12px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.25),inset 0 0 0 1px rgba(255,255,255,.06)}
+    .sidebar{display:flex;flex-direction:column;gap:10px}
+    .row{display:flex;gap:8px;align-items:center}
+    .btn{border:0;background:#1f2937;color:var(--ink);padding:9px 10px;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px}
+    .btn:hover{background:#283449}
+    .btn-accent{background:var(--accent)}.btn-accent:hover{filter:brightness(1.05)}
+    .btn-ghost{background:transparent;box-shadow:0 0 0 1px #26324a inset}
+    .muted{color:var(--muted)}
+    .title{font-weight:800;letter-spacing:.2px;margin:0 0 6px}
+    .decklist{display:grid;gap:6px;max-height:55vh;overflow:auto}
+    .deckitem{padding:8px 10px;border-radius:10px;background:var(--panel2);border:1px solid #1f2937;cursor:pointer}
+    .deckitem.active{outline:2px solid var(--ring)}
+    .small{font-size:12px}
+    textarea,pre,code,input,select{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .editor{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .pane{min-height:520px}
+    textarea{width:100%;height:520px;background:#0b1327;color:#e2e8f0;border:1px solid #1f2937;border-radius:10px;padding:12px;resize:vertical}
+    .preview{padding:12px;min-height:520px;background:#0b1327;border:1px solid #1f2937;border-radius:10px}
+    .kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .kpi>div{background:#121a2a;border:1px solid #1f2937;border-radius:12px;padding:14px;text-align:center}
+    .big{font-size:28px;font-weight:800}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #26324a;background:#0b1220}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .field{display:grid;gap:6px}
+    input[type="number"],input[type="text"]{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #1f2937;background:#0c1428;color:#e2e8f0}
+    .footer{margin-top:10px;color:var(--muted);font-size:12px}
+    .danger{color:var(--bad)}.good{color:var(--ok)}.info{color:var(--info)}.warn{color:var(--warn)}
+    .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .spacer{flex:1}
+    .nlbox{background:#0b1327;border:1px dashed #334155;border-radius:10px;padding:10px}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar / Deck controls -->
+    <div class="card sidebar">
+      <h2 class="title">PowerPoint++ Deck</h2>
+      <div class="row">
+        <button class="btn-accent btn" id="btnNewStatic">+ Static</button>
+        <button class="btn btn" id="btnNewCalc">+ Calculator</button>
+        <button class="btn btn" id="btnNewGame">+ Game</button>
+        <button class="btn btn" id="btnNewSPC">+ SPC</button>
+      </div>
+      <div class="row">
+        <button class="btn-ghost btn" id="btnExport">Export Deck</button>
+        <label class="btn-ghost btn" style="cursor:pointer">Import<input id="fileIn" type="file" accept=".json,.txt" style="display:none"></label>
+      </div>
+      <div class="row">
+        <input id="deckTitle" type="text" placeholder="Deck title" />
+        <button class="btn" id="btnSaveTitle">Save</button>
+      </div>
+
+      <div class="nlbox">
+        <div class="small muted" style="margin-bottom:6px"><strong>LLM Compiler (stub)</strong> — paste an idea, get a starter slide DSL.</div>
+        <textarea id="nlInput" placeholder="e.g., 'Create an ROI calculator with initial, final, years'" style="height:90px"></textarea>
+        <div class="row" style="margin-top:6px">
+          <button class="btn" id="btnCompile">Compile → New Slide</button>
+          <span class="small muted">(heuristic demo; swap with real LLM later)</span>
+        </div>
+      </div>
+
+      <div class="muted small" style="margin-top:10px">Slides</div>
+      <div id="deckList" class="decklist"></div>
+    </div>
+
+    <!-- Editor / Preview -->
+    <div class="card">
+      <div class="bar" style="margin-bottom:8px">
+        <div class="row" style="gap:6px"><span class="muted small">Editing:</span> <strong id="currentName">(none)</strong></div>
+        <div class="spacer"></div>
+        <button class="btn" id="btnApply">Apply</button>
+        <button class="btn" id="btnDelete">Delete Slide</button>
+      </div>
+      <div class="editor">
+        <div class="pane">
+          <textarea id="editor"></textarea>
+          <div class="footer">JSON only for now. Schema depends on <code>type</code>: <code>static</code>, <code>interactive</code>, <code>game</code>, <code>spc</code>.</div>
+        </div>
+        <div class="pane preview" id="preview"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ===============================
+// Minimal SPC / AXIS primitives
+// ===============================
+class AxisRulesEngine {
+  evaluate(condition, ctx){
+    if(!condition) return true;
+    try{
+      const safe = Object.freeze({ ...ctx, Math, Date, parseInt, parseFloat });
+      const keys = Object.keys(safe);
+      const fn = new Function('ctx', `"use strict"; const { ${keys.join(', ')} } = ctx; return (${condition});`);
+      return !!fn(safe);
+    }catch(e){ console.warn('Condition error', e); return false; }
+  }
+  resolve(template, ctx){
+    if(typeof template !== 'string') return template;
+    const q = template.match(/^\s*(['"])([\s\S]*)\1\s*$/); if(q) template = q[2];
+    const m = template.match(/^\s*\{\{\s*([\s\S]*?)\s*\}\}\s*$/); if(!m) return template;
+    try{
+      const safe = Object.freeze({ ...ctx, Math, Date, parseInt, parseFloat });
+      const keys = Object.keys(safe);
+      const fn = new Function('ctx', `"use strict"; const { ${keys.join(', ')} } = ctx; return (${m[1]});`);
+      return fn(safe);
+    }catch(e){ console.warn('Template error', e); return template; }
+  }
+  apply(data, rules){
+    let state = JSON.parse(JSON.stringify(data||{}));
+    const logs=[]; const arr = (rules && rules.rules) || [];
+    for(let i=0;i<arr.length;i++){
+      const r=arr[i]; if(!this.evaluate(r.if, state)) continue; const changes=[];
+      if(r.then){ for(const [k,expr] of Object.entries(r.then)){ const prev=state[k]; const next=this.resolve(expr, state); state[k]=next; if(JSON.stringify(prev)!==JSON.stringify(next)) changes.push({field:k,prev,next}); }}
+      logs.push({index:i+1,name:r.name||`rule_${i+1}`,changes});
+    }
+    return {output:state,logs};
+  }
+}
+const engine = new AxisRulesEngine();
+
+// ===============================
+// Deck model + storage
+// ===============================
+const STORAGE_KEY = 'ppp_deck_v1';
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+function uid(){ return 'slide-' + Math.random().toString(36).slice(2,10); }
+
+const SAMPLE_DECK = {
+  meta:{ title:'PowerPoint++ Demo Deck', version:1 },
+  slides:[
+    {
+      id: uid(),
+      title: 'Vision: Browser-native Spreadsheet for Apps',
+      type: 'static',
+      rules: {
+        content: {
+          title: 'PowerPoint++ = Spreadsheet for Apps',
+          sections:[
+            { heading:'Thesis', text:'A slide is just state + rules + a renderer. That makes the browser a universal “spreadsheet for apps.”' },
+            { heading:'Stack', text:'SPC (rules, eval) + AXIS (pipes/rules/adapters) + MNEME (audit) + KERN (runtime).' },
+            { heading:'Benefit', text:'Non-engineers can compose calculators, games, dashboards by editing JSON/YAML — not shipping code.' }
+          ]
+        }
+      }
+    },
+    {
+      id: uid(),
+      title: 'ROI Calculator',
+      type: 'interactive',
+      rules: {
+        title: 'Investment ROI Calculator',
+        description: 'Calculate your return on investment',
+        inputs:[
+          { name:'initial', label:'Initial Investment ($)', type:'number', default:1000 },
+          { name:'final',   label:'Final Value ($)',      type:'number', default:1200 },
+          { name:'years',   label:'Years Held',           type:'number', default:1 }
+        ],
+        calculation: 'Math.round(((inputs.final - inputs.initial)/inputs.initial)*100*100)/100',
+        result_format: 'ROI: {result}% ({years} years)'
+      }
+    },
+    {
+      id: uid(),
+      title: 'BTC Price (SPC)',
+      type: 'spc',
+      rules: {
+        init: { price:0, change_24h:0, timestamp:null, status:'unknown' },
+        fetch: { url:'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true' },
+        rules: {
+          rules:[
+            { name:'categorize_price', if:'price > 0', then:{ status:"{{ price > 100000 ? 'moon' : price > 50000 ? 'expensive' : price > 30000 ? 'normal' : 'cheap' }}" } },
+            { name:'format_time', if:'timestamp', then:{ formatted_time:"{{ new Date(timestamp).toLocaleString() }}" } },
+            { name:'trend', if:'change_24h !== 0', then:{ trend:"{{ change_24h > 5 ? 'bullish' : change_24h < -5 ? 'bearish' : 'stable' }}" } }
+          ]
+        }
+      }
+    },
+    {
+      id: uid(),
+      title: 'Founder Grit Game',
+      type: 'game',
+      rules: {
+        title: 'Startup Founder Grit Test',
+        description: 'Rate your responses to tough scenarios',
+        scenarios:[
+          'Investor ghosts after interest',
+          'Customer churns after onboarding',
+          'Server goes down on launch day',
+          'Co‑founder quits suddenly'
+        ],
+        scoring:{ grit:10, meh:5, panic:-10 },
+        thresholds:{ '-20':'Maybe not founder life…', '0':'You can handle the basics', '20':'Battle‑tested!', '40':'Unstoppable 🚀' }
+      }
+    }
+  ]
+};
+
+let deck = loadDeck();
+let current = deck.slides[0]?.id || null;
+
+function loadDeck(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch{}
+  return JSON.parse(JSON.stringify(SAMPLE_DECK));
+}
+function persist(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(deck)); }catch{} }
+
+// ===============================
+// UI wiring
+// ===============================
+const deckTitle = $('#deckTitle');
+const deckList = $('#deckList');
+const editor = $('#editor');
+const preview = $('#preview');
+$('#btnSaveTitle').onclick = () => { deck.meta.title = deckTitle.value || 'Untitled Deck'; persist(); renderDeckList(); };
+$('#btnExport').onclick = () => { const blob = new Blob([JSON.stringify(deck,null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=(deck.meta.title||'deck')+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); };
+$('#fileIn').onchange = (e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ deck=JSON.parse(String(r.result)); current=deck.slides[0]?.id||null; persist(); renderAll(); }catch(err){ alert('Invalid deck JSON'); } }; r.readAsText(f); };
+
+$('#btnNewStatic').onclick = ()=> addSlide(templateStatic());
+$('#btnNewCalc').onclick = ()=> addSlide(templateCalc());
+$('#btnNewGame').onclick  = ()=> addSlide(templateGame());
+$('#btnNewSPC').onclick   = ()=> addSlide(templateSPC());
+$('#btnDelete').onclick   = ()=> { if(!current) return; const i = deck.slides.findIndex(s=>s.id===current); if(i>=0){ deck.slides.splice(i,1); current = deck.slides[i]?.id || deck.slides[i-1]?.id || null; persist(); renderAll(); } };
+$('#btnApply').onclick    = ()=> applyFromEditor();
+$('#btnCompile').onclick  = ()=> compileNL();
+
+function renderDeckList(){
+  deckTitle.value = deck.meta.title || '';
+  deckList.innerHTML='';
+  deck.slides.forEach((s,idx)=>{
+    const div=document.createElement('div');
+    div.className='deckitem'+(s.id===current?' active':'');
+    div.innerHTML = `<div><strong>${idx+1}. ${escapeHtml(s.title)}</strong></div><div class="small muted">${s.type}</div>`;
+    div.onclick=()=>{ current=s.id; renderAll(); };
+    deckList.appendChild(div);
+  });
+}
+
+function applyFromEditor(){
+  try{ const obj = JSON.parse(editor.value); const i = deck.slides.findIndex(s=>s.id===current); if(i<0) return; deck.slides[i] = obj; current = obj.id; persist(); renderAll(); }
+  catch(e){ alert('JSON parse error: '+e.message); }
+}
+
+function addSlide(obj){ deck.slides.push(obj); current=obj.id; persist(); renderAll(); }
+
+function renderEditor(){
+  const s = deck.slides.find(s=>s.id===current);
+  $('#currentName').textContent = s? s.title : '(none)';
+  editor.value = s? JSON.stringify(s,null,2) : '';
+}
+
+function renderPreview(){
+  const s = deck.slides.find(s=>s.id===current);
+  if(!s){ preview.textContent='No slide'; return; }
+  preview.innerHTML = '';
+  const h = document.createElement('div');
+  h.innerHTML = `<div class="row" style="align-items:baseline;gap:10px"><h2 class="title" style="margin:0">${escapeHtml(s.title)}</h2><span class="muted small">(${s.type})</span></div>`;
+  preview.appendChild(h);
+
+  if(s.type==='static') renderStatic(preview, s);
+  else if(s.type==='interactive') renderCalc(preview, s);
+  else if(s.type==='game') renderGame(preview, s);
+  else if(s.type==='spc') renderSPC(preview, s);
+  else preview.innerHTML += '<div class="muted">Unknown type</div>';
+}
+
+function renderAll(){ renderDeckList(); renderEditor(); renderPreview(); }
+
+// ===============================
+// Renderers
+// ===============================
+function renderStatic(root, slide){
+  const c = slide.rules?.content; if(!c) return;
+  const box = document.createElement('div');
+  box.className='card';
+  box.innerHTML = `<div style="margin-bottom:8px"><strong>${escapeHtml(c.title||'')}</strong></div>`;
+  (c.sections||[]).forEach(sec=>{
+    const d=document.createElement('div'); d.style.margin='10px 0';
+    d.innerHTML = `<div class="muted" style="font-weight:700">${escapeHtml(sec.heading||'')}</div><div>${escapeHtml(sec.text||'')}</div>`;
+    box.appendChild(d);
+  });
+  root.appendChild(box);
+}
+
+function renderCalc(root, slide){
+  const cfg = slide.rules||{}; const inputs = {}; (cfg.inputs||[]).forEach(i=>inputs[i.name]=Number(i.default||0));
+  const box = document.createElement('div'); box.className='card';
+  box.innerHTML = `<div class="muted" style="margin-bottom:8px">${escapeHtml(cfg.title||'')}</div><div class="small">${escapeHtml(cfg.description||'')}</div>`;
+
+  const form = document.createElement('div'); form.className='grid2';
+  (cfg.inputs||[]).forEach(inp=>{
+    const f=document.createElement('div'); f.className='field';
+    f.innerHTML = `<label class="small muted">${escapeHtml(inp.label||inp.name)}</label><input type="number" step="any" value="${Number(inp.default||0)}"/>`;
+    const inputEl = f.querySelector('input'); inputEl.oninput = ()=>{ inputs[inp.name] = Number(inputEl.value||0); compute(); };
+    form.appendChild(f); inputs[inp.name]=Number(inp.default||0);
+  });
+
+  const res = document.createElement('div'); res.style.marginTop='8px'; res.className='info';
+  function compute(){
+    try{
+      const safe = Object.freeze({ inputs, Math });
+      const keys = Object.keys(safe);
+      const fn = new Function('ctx', `"use strict"; const { ${keys.join(', ')} } = ctx; return (${cfg.calculation||'0'});`);
+      const out = fn(safe);
+      const fmt = (cfg.result_format||'Result: {result}').replace('{result}', out).replace('{years}', inputs.years??'');
+      res.textContent = fmt;
+    }catch(e){ res.textContent = 'Error: '+e.message; res.className='danger'; }
+  }
+  compute();
+
+  box.appendChild(form); box.appendChild(res); root.appendChild(box);
+}
+
+function renderGame(root, slide){
+  const cfg = slide.rules||{}; const box=document.createElement('div'); box.className='card';
+  const state = slide.state || (slide.state = { choices:{} });
+  box.innerHTML = `<div class="muted" style="margin-bottom:8px">${escapeHtml(cfg.title||'')}</div><div class="small">${escapeHtml(cfg.description||'')}</div>`;
+
+  const list=document.createElement('div'); list.style.marginTop='8px';
+  const options = Object.keys(cfg.scoring||{});
+  (cfg.scenarios||cfg.friends||[]).forEach((name,idx)=>{
+    const row=document.createElement('div'); row.className='row'; row.style.margin='6px 0';
+    const label=document.createElement('div'); label.textContent = name; label.style.flex='1';
+    row.appendChild(label);
+    options.forEach(opt=>{
+      const b=document.createElement('button'); b.className='btn small'; b.textContent = opt; b.onclick=()=>{ state.choices[idx]=opt; update(); };
+      row.appendChild(b);
+    });
+    list.appendChild(row);
+  });
+  box.appendChild(list);
+
+  const scoreDiv=document.createElement('div'); scoreDiv.style.marginTop='10px'; scoreDiv.className='good';
+  function update(){
+    const scoring = cfg.scoring||{}; let total=0;
+    for(const [i,opt] of Object.entries(state.choices)) total += Number(scoring[opt]||0);
+    const thresholds = Object.entries(cfg.thresholds||{}).map(([k,v])=>[Number(k),v]).sort((a,b)=>a[0]-b[0]);
+    let msg = '(no rating)'; for(const [th,lab] of thresholds){ if(total>=th) msg=lab; }
+    scoreDiv.textContent = `Score: ${total} — ${msg}`; persist();
+  }
+  update();
+  box.appendChild(scoreDiv); root.appendChild(box);
+}
+
+function renderSPC(root, slide){
+  const cfg = slide.rules||{}; const box=document.createElement('div'); box.className='card';
+  const state = slide.state || (slide.state = JSON.parse(JSON.stringify(cfg.init||{})));
+
+  const head = document.createElement('div'); head.className='row'; head.style.marginBottom='6px';
+  const status = document.createElement('span'); status.className='small muted'; head.append('SPC demo · ', status); box.appendChild(head);
+
+  const kpis = document.createElement('div'); kpis.className='kpi';
+  const a=document.createElement('div'); a.innerHTML=`<div class="muted">BTC / USD</div><div class="big" id="kbtc">—</div>`; kpis.appendChild(a);
+  const b=document.createElement('div'); b.innerHTML=`<div class="muted">Status</div><div id="kstat"><span class="pill">—</span></div>`; kpis.appendChild(b);
+  box.appendChild(kpis);
+
+  const extra=document.createElement('div'); extra.style.marginTop='8px';
+  extra.innerHTML = `<div><strong>24h Change:</strong> <span id="kchg" class="muted">—</span></div><div class="muted" style="margin-top:6px">Updated: <span id="ktime">—</span></div>`;
+  box.appendChild(extra);
+
+  const row=document.createElement('div'); row.className='row'; row.style.marginTop='8px';
+  const btn=document.createElement('button'); btn.className='btn'; btn.textContent='Fetch & Apply Rules'; row.appendChild(btn); box.appendChild(row);
+
+  async function fetchIt(){
+    try{
+      status.textContent = 'fetching…';
+      const res = await fetch(cfg.fetch?.url, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const d = await res.json();
+      state.price = d?.bitcoin?.usd ?? 0; state.change_24h = d?.bitcoin?.usd_24h_change ?? 0; state.timestamp = Date.now();
+      const {output} = engine.apply(state, cfg.rules);
+      Object.assign(state, output);
+      renderState(); persist();
+      status.textContent = 'ok';
+    }catch(e){ status.textContent = 'error'; console.warn(e); }
+  }
+  function renderState(){
+    box.querySelector('#kbtc').textContent = typeof state.price==='number'? state.price.toLocaleString(): '—';
+    const color = ({moon:'#fbbf24',expensive:'#f87171',normal:'#60a5fa',cheap:'#34d399'})[state.status] || '#9ca3af';
+    box.querySelector('#kstat').innerHTML = `<span class="pill" style="color:${color}">${state.status||'—'}</span>`;
+    const sign = (Number(state.change_24h)||0) >= 0 ? '+' : '';
+    box.querySelector('#kchg').textContent = `${sign}${Number(state.change_24h||0).toFixed(2)}%`;
+    box.querySelector('#ktime').textContent = state.formatted_time || (state.timestamp? new Date(state.timestamp).toLocaleString(): '—');
+  }
+  btn.onclick = fetchIt; renderState();
+  root.appendChild(box);
+}
+
+// ===============================
+// Templates & NL compiler (stub)
+// ===============================
+function templateStatic(){ return { id:uid(), title:'New Static', type:'static', rules:{ content:{ title:'New Static', sections:[{heading:'Edit me', text:'Describe your idea here.'}] } } }; }
+function templateCalc(){ return { id:uid(), title:'New Calculator', type:'interactive', rules:{ title:'Calculator', description:'Describe calculation', inputs:[{name:'a',label:'A',type:'number',default:1},{name:'b',label:'B',type:'number',default:2}], calculation:'inputs.a + inputs.b', result_format:'Result: {result}' } }; }
+function templateGame(){ return { id:uid(), title:'New Game', type:'game', rules:{ title:'Rate Things', description:'Pick ratings', scenarios:['Thing A','Thing B','Thing C'], scoring:{ good:10, ok:5, bad:-5 }, thresholds:{ '-10':'Yikes','0':'Meh','20':'Solid' } } }; }
+function templateSPC(){ return { id:uid(), title:'New SPC Slide', type:'spc', rules:{ init:{ price:0, change_24h:0, timestamp:null, status:'unknown' }, fetch:{ url:'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true' }, rules:{ rules:[ {name:'categorize',if:'price>0',then:{status:"{{ price > 100000 ? 'moon' : price > 50000 ? 'expensive' : price > 30000 ? 'normal' : 'cheap' }}"}} ] } } }; }
+
+function compileNL(){
+  const txt = ($('#nlInput').value||'').toLowerCase();
+  let obj=null;
+  if(/roi/.test(txt)){
+    obj = JSON.parse(JSON.stringify(SAMPLE_DECK.slides[1])); obj.id=uid(); obj.title='ROI Calculator';
+  }else if(/break[- ]?even|breakeven/.test(txt)){
+    obj = { id:uid(), title:'Break-Even Calculator', type:'interactive', rules:{ title:'Investment Break-Even Calculator', description:'Units needed to recover fixed costs', inputs:[{name:'fixed_costs',label:'Fixed Costs ($)',type:'number',default:5000},{name:'price_per_unit',label:'Price per Unit ($)',type:'number',default:50},{name:'variable_cost_per_unit',label:'Variable Cost per Unit ($)',type:'number',default:20}], calculation:'Math.ceil(inputs.fixed_costs / (inputs.price_per_unit - inputs.variable_cost_per_unit))', result_format:'Sell {result} units to break even.' } };
+  }else if(/bitcoin|btc/.test(txt)){
+    obj = JSON.parse(JSON.stringify(SAMPLE_DECK.slides[2])); obj.id=uid(); obj.title='BTC Price (SPC)';
+  }else{
+    obj = templateStatic(); obj.title = 'Compiled Draft'; obj.rules.content.sections[0].text = 'NL compiler stub could not classify. Edit this slide or use real LLM.';
+  }
+  addSlide(obj);
+}
+
+// ===============================
+// Utils
+// ===============================
+function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+
+// Boot
+renderAll();
+</script>
+</body>
+</html>
+
