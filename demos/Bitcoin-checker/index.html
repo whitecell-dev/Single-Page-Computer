@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPC — Bitcoin Rules Playground</title>
+  <style>
+    :root {
+      --bg: #0f172a;       /* slate-900 */
+      --panel: #111827;    /* gray-900 */
+      --panel-2: #0b1220;  /* deep */
+      --text: #e5e7eb;     /* gray-200 */
+      --muted: #9ca3af;    /* gray-400 */
+      --accent: #7c3aed;   /* violet-600 */
+      --ok: #34d399;       /* emerald-400 */
+      --warn: #f59e0b;     /* amber-500 */
+      --bad: #f87171;      /* red-400 */
+      --info: #60a5fa;     /* blue-400 */
+      --ring: rgba(124, 58, 237, .35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    * { box-sizing: border-box }
+    html, body { height: 100% }
+    body {
+      margin: 0; background: linear-gradient(135deg,#1f2937,#0f172a 35%, #111827);
+      color: var(--text); font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .app { max-width: 1200px; margin: 24px auto; padding: 16px; }
+    h1 { margin: 0 0 8px; font-size: 20px; letter-spacing: .2px; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px;
+    }
+    button, .btn {
+      border: 0; background: #1f2937; color: var(--text); padding: 10px 12px; border-radius: 10px;
+      box-shadow: 0 0 0 1px #1f2937 inset, 0 1px 0 rgba(255,255,255,.05);
+      cursor: pointer; font-weight: 600; font-size: 13px;
+    }
+    button:hover { background: #253043 }
+    button:focus { outline: 2px solid var(--ring); outline-offset: 2px }
+    .btn-accent { background: var(--accent) }
+    .btn-accent:hover { filter: brightness(1.1) }
+    .btn-ghost { background: transparent; box-shadow: 0 0 0 1px #26324a inset }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr } }
+
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border-radius: 14px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .08em }
+
+    .editor-wrap { position: relative; }
+    textarea {
+      width: 100%; min-height: 420px; resize: vertical; font: 13px/1.5 var(--mono);
+      background: var(--panel-2); color: #e2e8f0; border: 1px solid #1f2937; border-radius: 10px;
+      padding: 12px 12px 28px 12px; outline: none; caret-color: #fff;
+    }
+    .statusbar {
+      position: absolute; left: 10px; right: 10px; bottom: 8px; display: flex; gap: 10px; align-items: center; color: var(--muted);
+      font: 12px var(--mono);
+    }
+    .statusbar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 2px rgba(52,211,153,.2) }
+
+    .output { display: grid; gap: 10px }
+    .box { background: var(--panel-2); border: 1px solid #1f2937; border-radius: 10px; padding: 12px }
+    .kpi { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; align-items: start }
+    .kpi > div { background: #121a2a; border: 1px solid #1f2937; border-radius: 12px; padding: 14px; text-align: center }
+    .big { font-size: 28px; font-weight: 800 }
+    .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; font-weight: 700; font-size: 12px }
+
+    .muted { color: var(--muted) }
+    .good { color: var(--ok) }
+    .bad { color: var(--bad) }
+    .info { color: var(--info) }
+
+    table { width: 100%; font-size: 12px; border-collapse: collapse }
+    th, td { padding: 6px 8px; border-bottom: 1px dashed rgba(255,255,255,.08); text-align: left; vertical-align: top }
+    th { color: var(--muted) }
+
+    .error { background: #2a1114; border: 1px solid #4a1f24; color: #fecaca; padding: 10px; border-radius: 10px; font-size: 13px }
+
+    .cmdbar { display: none; margin-top: 8px }
+    .cmdbar input { width: 100%; font: 13px var(--mono); padding: 10px 12px; border-radius: 10px; border: 1px solid #1f2937; background: #0c1323; color: #e2e8f0 }
+    .cmdbar.show { display: block }
+
+    .footer { margin-top: 14px; color: var(--muted); font-size: 12px }
+    .footer code { font-family: var(--mono) }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>📈 SPC — Bitcoin Price Checker</h1>
+    <div class="sub">Single‑file <strong>SPC</strong> with a live <strong>Rules Editor</strong>, history, and a tiny ":command" bar (vim‑ish).
+    </div>
+
+    <div class="toolbar">
+      <button id="btnFetch" class="btn-accent">🔄 Fetch from API</button>
+      <button id="btnApply">⚙️ Apply Rules</button>
+      <button id="btnDry">🧪 Dry‑run (no fetch)</button>
+      <button id="btnReset" class="btn-ghost">♻️ Reset Rules</button>
+      <button id="btnExport" class="btn-ghost">📤 Export</button>
+      <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">📥 Import
+        <input id="fileIn" type="file" accept=".yaml,.yml,.txt" style="display:none" />
+      </label>
+      <div id="lastUpdate" class="muted" style="margin-left:auto"></div>
+    </div>
+
+    <div class="grid">
+      <!-- Editor side -->
+      <div class="card editor-wrap">
+        <h3>Rules (YAML‑ish)</h3>
+        <textarea id="rulesEditor" spellcheck="false"></textarea>
+        <div class="statusbar"><span class="dot"></span> <span id="saveStatus">autosaved</span> · <span>type <strong>:</strong> to open command bar</span></div>
+        <div class="cmdbar" id="cmdbar"><input id="cmdinput" placeholder=":commands — try :help, :w, :fetch, :reset, :export"/></div>
+      </div>
+
+      <!-- Output side -->
+      <div class="card">
+        <h3>Preview</h3>
+        <div class="output">
+          <div id="errors" class="error" style="display:none"></div>
+
+          <div class="kpi">
+            <div>
+              <div class="muted">BTC / USD</div>
+              <div id="kpiPrice" class="big">—</div>
+            </div>
+            <div>
+              <div class="muted">Status</div>
+              <div id="kpiStatus"><span class="pill" style="background:#0b1220;border:1px solid #26324a">—</span></div>
+            </div>
+          </div>
+
+          <div class="box">
+            <div><strong>24h Change:</strong> <span id="kpiChange" class="muted">—</span></div>
+            <div><strong>Trend:</strong> <span id="kpiTrend" class="muted">—</span></div>
+            <div class="muted" style="margin-top:8px">Updated: <span id="kpiTime">—</span></div>
+          </div>
+
+          <div class="box">
+            <details open>
+              <summary><strong>State (input → output)</strong></summary>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+                <div>
+                  <div class="muted" style="margin-bottom:6px">Input</div>
+                  <pre id="preInput" style="margin:0;white-space:pre-wrap"></pre>
+                </div>
+                <div>
+                  <div class="muted" style="margin-bottom:6px">Output</div>
+                  <pre id="preOutput" style="margin:0;white-space:pre-wrap"></pre>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="box">
+            <details>
+              <summary><strong>Rule Application Log</strong></summary>
+              <table id="logTable"><thead><tr><th>#</th><th>Rule</th><th>Changes</th></tr></thead><tbody></tbody></table>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">Toy parser & evaluator for demo purposes. For production, swap in a real YAML parser (e.g. <code>js-yaml</code>) and a sandboxed expression evaluator.
+    </div>
+  </div>
+
+<script>
+// ---------------------------
+// Defaults
+// ---------------------------
+const DEFAULT_RULES = `
+rules:
+  - name: "categorize_price"
+    if: "price > 0"
+    then:
+      status: "{{ price > 100000 ? 'moon' : price > 50000 ? 'expensive' : price > 30000 ? 'normal' : 'cheap' }}"
+
+  - name: "format_timestamp"
+    if: "timestamp"
+    then:
+      formatted_time: "{{ new Date(timestamp).toLocaleString() }}"
+
+  - name: "trend_analysis"
+    if: "change_24h !== 0"
+    then:
+      trend: "{{ change_24h > 5 ? 'bullish' : change_24h < -5 ? 'bearish' : 'stable' }}"
+`;
+
+const STORAGE_KEY = 'spc_rules_yaml';
+
+// ---------------------------
+// Tiny YAML-ish parser (handles our very small subset)
+// ---------------------------
+const simpleYAML = {
+  load(yamlString) {
+    const lines = (yamlString || '').split(/\r?\n/);
+    const result = { rules: [] };
+    let currentRule = null;
+    let currentSection = null;
+
+    const flush = () => { if (currentRule) { result.rules.push(currentRule); currentRule = null; currentSection = null; } };
+
+    for (let raw of lines) {
+      let line = raw; // keep raw for value join
+      const trimmed = raw.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+
+      if (/^-\s*name\s*:/i.test(trimmed)) {
+        flush();
+        const rawName = trimmed.split(':').slice(1).join(':').trim();
+        const name = rawName.replace(/^['"]|['"]$/g, '');
+        currentRule = { name, then: {} };
+        currentSection = null;
+        continue;
+      }
+
+      if (/^if\s*:/i.test(trimmed)) {
+        if (!currentRule) { currentRule = { name: 'unnamed', then: {} }; }
+        currentRule.if = trimmed.split(':').slice(1).join(':').trim().replace(/^['"]|['"]$/g, '');
+        continue;
+      }
+
+      if (/^then\s*:/i.test(trimmed)) {
+        if (!currentRule) { currentRule = { name: 'unnamed', then: {} }; }
+        if (!currentRule.then) currentRule.then = {};
+        currentSection = 'then';
+        continue;
+      }
+
+      if (currentSection === 'then' && trimmed.includes(':')) {
+        const idx = line.indexOf(':');
+        const key = line.slice(0, idx).trim();
+        const value = line.slice(idx + 1).trim(); // keep quotes; may be "{{ ... }}"
+        if (key) currentRule.then[key] = value;
+        continue;
+      }
+    }
+
+    flush();
+    return result;
+  }
+};
+
+// ---------------------------
+// Rules Engine
+// ---------------------------
+class AxisRulesEngine {
+  apply(inputData, rulesConfig) {
+    let state = JSON.parse(JSON.stringify(inputData)); // deep copy
+    const rules = (rulesConfig && rulesConfig.rules) || [];
+    const logs = [];
+
+    for (let i = 0; i < rules.length; i++) {
+      const rule = rules[i];
+      const passed = this.evaluate(rule.if, state);
+      if (!passed) continue;
+
+      const changes = [];
+      if (rule.then) {
+        for (const [field, expression] of Object.entries(rule.then)) {
+          const prev = state[field];
+          const next = this.resolve(expression, state);
+          state[field] = next;
+          if (JSON.stringify(prev) !== JSON.stringify(next)) {
+            changes.push({ field, prev, next });
+          }
+        }
+      }
+      logs.push({ index: i + 1, name: rule.name || `rule_${i+1}`, changes });
+    }
+
+    return { input: inputData, output: state, logs };
+  }
+
+  evaluate(condition, context) {
+    if (!condition) return true;
+    try {
+      const safeContext = Object.freeze({ ...context, Math, Date, parseInt, parseFloat });
+      const keys = Object.keys(safeContext);
+      const fn = new Function('ctx', `"use strict"; const { ${keys.join(', ')} } = ctx; return (${condition});`);
+      return !!fn(safeContext);
+    } catch (e) {
+      console.error('Condition error:', condition, e);
+      return false;
+    }
+  }
+
+  resolve(template, context) {
+    if (typeof template !== 'string') return template;
+
+    // If entire value is quoted, unwrap only the outer quotes once
+    const q = template.match(/^\s*(['"])([\s\S]*)\1\s*$/);
+    if (q) template = q[2];
+
+    // Mustache-style {{ expression }}
+    const m = template.match(/^\s*\{\{\s*([\s\S]*?)\s*\}\}\s*$/);
+    if (!m) return template; // plain string
+
+    const expression = m[1];
+    try {
+      const safeContext = Object.freeze({ ...context, Math, Date, parseInt, parseFloat });
+      const keys = Object.keys(safeContext);
+      const fn = new Function('ctx', `"use strict"; const { ${keys.join(', ')} } = ctx; return (${expression});`);
+      return fn(safeContext);
+    } catch (e) {
+      console.error('Template error:', expression, e);
+      return template; // fallback to literal template
+    }
+  }
+}
+
+// ---------------------------
+// App state & helpers
+// ---------------------------
+let currentData = { price: 0, status: 'unknown', timestamp: null, change_24h: 0 };
+let lastResult = null;
+const engine = new AxisRulesEngine();
+
+const el = (id) => document.getElementById(id);
+const fmtUSD = (n) => (typeof n === 'number' ? '$' + n.toLocaleString() : '—');
+const statusColor = (s) => ({ moon:'#fbbf24', expensive:'#f87171', normal:'#60a5fa', cheap:'#34d399' }[s] || '#9ca3af');
+
+function setError(msg) {
+  const box = el('errors');
+  if (!msg) { box.style.display = 'none'; box.textContent = ''; return; }
+  box.style.display = 'block';
+  box.textContent = msg;
+}
+
+function render(result) {
+  if (!result) return;
+  const out = result.output;
+  el('kpiPrice').textContent = typeof out.price === 'number' ? out.price.toLocaleString() : '—';
+  el('kpiChange').textContent = (out.change_24h >= 0 ? '+' : '') + (Number(out.change_24h).toFixed(2)) + '%';
+  el('kpiChange').className = out.change_24h >= 0 ? 'good' : 'bad';
+
+  const s = String(out.status ?? '—');
+  el('kpiStatus').innerHTML = `<span class="pill" style="background:#0b1220;border:1px solid #26324a;color:${statusColor(s)}">${s}</span>`;
+
+  el('kpiTrend').textContent = out.trend ?? '—';
+  el('kpiTrend').className = /bullish/i.test(out.trend||'') ? 'good' : /bearish/i.test(out.trend||'') ? 'bad' : 'muted';
+
+  el('kpiTime').textContent = out.formatted_time || (out.timestamp ? new Date(out.timestamp).toLocaleString() : '—');
+
+  el('preInput').textContent = JSON.stringify(result.input, null, 2);
+  el('preOutput').textContent = JSON.stringify(result.output, null, 2);
+
+  // logs
+  const tbody = el('logTable').querySelector('tbody');
+  tbody.innerHTML = '';
+  result.logs.forEach((row) => {
+    const tr = document.createElement('tr');
+    const ch = row.changes.map(c => `<code>${c.field}</code>: ${JSON.stringify(c.prev)} → <strong>${JSON.stringify(c.next)}</strong>`).join('<br/>');
+    tr.innerHTML = `<td class="muted">${row.index}</td><td>${row.name}</td><td>${ch || '<span class="muted">(no changes)</span>'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function fetchFromAPI() {
+  try {
+    setError('');
+    // CoinGecko simple price endpoint (no key)
+    const url = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true';
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('API request failed: ' + res.status);
+    const data = await res.json();
+    currentData.price = data?.bitcoin?.usd ?? 0;
+    currentData.change_24h = data?.bitcoin?.usd_24h_change ?? 0;
+    currentData.timestamp = Date.now();
+    el('lastUpdate').textContent = 'Last fetch: ' + new Date(currentData.timestamp).toLocaleTimeString();
+  } catch (e) {
+    setError(e.message || String(e));
+  }
+}
+
+function parseRules() {
+  try {
+    const text = el('rulesEditor').value;
+    return simpleYAML.load(text);
+  } catch (e) {
+    setError('Parse error: ' + (e.message || e));
+    return { rules: [] };
+  }
+}
+
+function applyRules() {
+  const cfg = parseRules();
+  lastResult = engine.apply(currentData, cfg);
+  render(lastResult);
+}
+
+function dryRun() {
+  // apply rules without re-fetching
+  applyRules();
+}
+
+function resetRules() {
+  el('rulesEditor').value = DEFAULT_RULES.trim();
+  persist();
+  applyRules();
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, el('rulesEditor').value);
+    el('saveStatus').textContent = 'autosaved';
+  } catch {}
+}
+
+function loadPersisted() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  el('rulesEditor').value = (saved && saved.trim()) ? saved : DEFAULT_RULES.trim();
+}
+
+function exportRules() {
+  const blob = new Blob([el('rulesEditor').value], { type: 'text/yaml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'rules.yaml'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function importRules(file) {
+  const reader = new FileReader();
+  reader.onload = () => { el('rulesEditor').value = String(reader.result || ''); persist(); applyRules(); };
+  reader.readAsText(file);
+}
+
+// ---------------------------
+// Command bar (vim‑ish)
+// ---------------------------
+function openCmd() { el('cmdbar').classList.add('show'); el('cmdinput').value = ':'; el('cmdinput').focus(); }
+function closeCmd() { el('cmdbar').classList.remove('show'); el('rulesEditor').focus(); }
+
+function runCommand(cmd) {
+  const c = cmd.trim().replace(/^:/, '').toLowerCase();
+  if (!c) return;
+  switch (c) {
+    case 'w': case 'write': applyRules(); closeCmd(); break;
+    case 'wq': applyRules(); closeCmd(); break;
+    case 'q': case 'quit': closeCmd(); break;
+    case 'fetch': fetchFromAPI().then(applyRules); closeCmd(); break;
+    case 'reset': resetRules(); closeCmd(); break;
+    case 'export': exportRules(); closeCmd(); break;
+    case 'help':
+      alert(`Commands:\n:w (write/apply)\n:wq (apply & close)\n:q (close)\n:fetch (fetch API)\n:reset (default rules)\n:export (download rules)`);
+      break;
+    default:
+      setError('Unknown command: ' + c);
+  }
+}
+
+// ---------------------------
+// Wire up UI
+// ---------------------------
+(function init() {
+  loadPersisted();
+  el('rulesEditor').addEventListener('input', () => { el('saveStatus').textContent = '…editing'; persist(); });
+  el('rulesEditor').addEventListener('keydown', (e) => {
+    if (e.key === ':' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault(); openCmd();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); applyRules(); }
+  });
+
+  el('cmdinput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runCommand(el('cmdinput').value);
+    if (e.key === 'Escape') closeCmd();
+  });
+
+  el('btnFetch').onclick = () => fetchFromAPI().then(applyRules);
+  el('btnApply').onclick = applyRules;
+  el('btnDry').onclick = dryRun;
+  el('btnReset').onclick = resetRules;
+  el('btnExport').onclick = exportRules;
+  el('fileIn').onchange = (e) => { const f = e.target.files?.[0]; if (f) importRules(f); };
+
+  // Initial load
+  fetchFromAPI().then(applyRules);
+})();
+</script>
+</body>
+</html>
+
