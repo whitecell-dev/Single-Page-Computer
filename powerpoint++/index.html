@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPC PowerPoint++ - Browser-Native Presentation Engine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+</head>
+<body>
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">SPC PowerPoint++</h1>
+                <p class="sidebar-subtitle">Browser-Native Presentations</p>
+            </div>
+            
+            <ul class="slide-list" id="slide-list">
+                <!-- Slides will be populated by JavaScript -->
+            </ul>
+            
+            <div class="controls">
+                <button class="control-btn" onclick="editSlide()">
+                    <i class="fas fa-edit"></i> Edit Current Slide
+                </button>
+                <button class="control-btn" onclick="addSlide()">
+                    <i class="fas fa-plus"></i> Add New Slide
+                </button>
+                <button class="control-btn" onclick="exportPresentation()">
+                    <i class="fas fa-download"></i> Export HTML
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content Panel -->
+        <div class="main-panel">
+            <div class="main-header">
+                <div class="slide-header">
+                    <h2 class="current-slide-title" id="current-slide-title">Loading...</h2>
+                    <p class="current-slide-meta" id="current-slide-meta">Slide 1 of 5</p>
+                </div>
+                <div class="main-actions">
+                    <button onclick="previousSlide()"><i class="fas fa-arrow-left"></i></button>
+                    <button onclick="nextSlide()"><i class="fas fa-arrow-right"></i></button>
+                    <button onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+            
+            <div class="slide-content">
+                <div class="slide-renderer" id="slide-renderer">
+                    <!-- Current slide content will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Editor Overlay -->
+    <div class="editor-overlay" id="editor-overlay">
+        <div class="editor-panel">
+            <div class="editor-header">
+                <h3 class="editor-title">Edit Slide Rules (JSON/YAML)</h3>
+                <div class="editor-actions">
+                    <button onclick="saveSlide()">Save</button>
+                    <button onclick="closeEditor()">Cancel</button>
+                </div>
+            </div>
+            <textarea class="editor-textarea" id="editor-textarea" placeholder="Edit slide definition..."></textarea>
+        </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+    </div>
+</body>
+</html>

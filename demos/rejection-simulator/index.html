@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will U Go Out W/ Me? - The Rejection Simulator</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --bg-card: #1c2128;
+            --border-primary: #30363d;
+            --border-accent: #21d4fd;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-primary: #ff6b9d;
+            --accent-secondary: #c77dff;
+            --accent-success: #39ff14;
+            --accent-danger: #ff073a;
+            --accent-warning: #ffd23f;
+            --shadow-glow: 0 0 20px rgba(33, 212, 253, 0.3);
+            --shadow-pink: 0 0 15px rgba(255, 107, 157, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 1rem;
+            height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--border-accent);
+            background: var(--bg-card);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--accent-primary);
+            text-shadow: 0 0 10px var(--accent-primary);
+            margin-bottom: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .header .tagline {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .crush-section {
+            background: var(--bg-card);
+            border: 2px solid var(--border-primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crush-sprite {
+            font-size: 8rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .crush-sprite.happy { transform: scale(1.1) rotate(5deg); }
+        .crush-sprite.neutral { transform: scale(1); }
+        .crush-sprite.annoyed { transform: scale(0.9) rotate(-5deg); filter: hue-rotate(180deg); }
+        .crush-sprite.disgusted { transform: scale(0.8) rotate(-15deg); filter: grayscale(1); }
+
+        .mood-text {
+            font-size: 1.2rem;
+            color: var(--accent-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .compatibility-meter {
+            background: var(--bg-tertiary);
+            height: 30px;
+            border-radius: 15px;
+            margin: 1rem 0;
+            overflow: hidden;
+            border: 2px solid var(--border-primary);
+        }
+
+        .compatibility-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-danger), var(--accent-warning), var(--accent-success));
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .compatibility-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: var(--text-primary);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .ask-button {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-pink);
+            font-family: inherit;
+        }
+
+        .ask-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-pink), 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .ask-button:active {
+            transform: translateY(0);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 1px solid var(--border-primary);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .rules-editor {
+            background: var(--bg-card);
+            border: 2px solid var(--border-primary);
+            border-radius: 1rem;
+            padding: 1rem;
+            flex: 1;
+        }
+
+        .rules-editor h3 {
+            color: var(--accent-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .json-editor {
+            width: 100%;
+            height: 300px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        .json-editor:focus {
+            border-color: var(--border-accent);
+            box-shadow: 0 0 5px var(--border-accent);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .controls button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .controls button:hover {
+            background: var(--border-primary);
+            border-color: var(--border-accent);
+        }
+
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-primary);
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid var(--accent-danger);
+            background: var(--bg-tertiary);
+            border-radius: 0.3rem;
+        }
+
+        .log-entry.success {
+            border-left-color: var(--accent-success);
+        }
+
+        .log-timestamp {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .log-reason {
+            color: var(--text-primary);
+            margin-top: 0.3rem;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            border: 3px solid var(--accent-primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-pink), 0 0 50px rgba(0,0,0,0.8);
+            z-index: 1000;
+            max-width: 400px;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .popup h3 {
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .popup button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .popup button:hover {
+            background: var(--border-primary);
+            transform: translateY(-1px);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .crush-sprite {
+                font-size: 6rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💔 Will U Go Out W/ Me? 💔</h1>
+            <p class="tagline">"The only ethical way to simulate rejection 10,000 times per second."</p>
+        </div>
+
+        <div class="left-panel">
+            <div class="crush-section">
+                <div class="mood-text" id="mood-text">Waiting for your move...</div>
+                <div class="crush-sprite neutral" id="crush-sprite">😊</div>
+                
+                <div class="compatibility-meter">
+                    <div class="compatibility-fill" id="compatibility-fill" style="width: 50%;">
+                        <div class="compatibility-text" id="compatibility-text">50% Compatible</div>
+                    </div>
+                </div>
+
+                <button class="ask-button" id="ask-button" onclick="askOut()">
+                    💝 Ask Out 💝
+                </button>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="rejection-count">0</div>
+                        <div class="stat-label">Rejections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="success-count">0</div>
+                        <div class="stat-label">Successes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="charisma-level">1</div>
+                        <div class="stat-label">Charisma</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="rules-editor">
+                <h3>🔧 Dating Rules Engine (JSON)</h3>
+                <textarea class="json-editor" id="rules-json" placeholder="Edit your dating rules..."></textarea>
+                <div class="controls">
+                    <button onclick="loadPreset('default')">Default Rules</button>
+                    <button onclick="loadPreset('engineer')">Engineer Pack</button>
+                    <button onclick="loadPreset('middle-school')">Middle School</button>
+                    <button onclick="loadPreset('fantasy')">Fantasy RPG</button>
+                    <button onclick="exportRules()">Export Rules</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer" id="log-container">
+            <h4 style="color: var(--accent-secondary); margin-bottom: 1rem;">💀 Rejection Audit Trail 💀</h4>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            rejections: 0,
+            successes: 0,
+            charisma: 1,
+            currentMood: 'neutral',
+            logs: []
+        };
+
+        // Rule Presets
+        const presets = {
+            default: {
+                compatibility_threshold: 70,
+                red_flags: ["talks about ex constantly", "ghost_probability > 0.8", "hates cats"],
+                green_flags: ["sends memes", "brings snacks", "owns cats"],
+                bonus_points: {
+                    "has_job": 15,
+                    "makes_coffee": 10,
+                    "knows_programming": 20,
+                    "good_texter": 25
+                },
+                penalty_points: {
+                    "leaves_on_read": -30,
+                    "says_not_like_other_girls": -50,
+                    "talks_to_ex": -25
+                },
+                fatal_flaws: ["is_crypto_bro", "doesnt_tip", "rude_to_waiters"],
+                charisma_modifiers: {
+                    "bought_flowers": 15,
+                    "remembered_birthday": 20,
+                    "made_playlist": 10
+                },
+                rejection_reasons: [
+                    "She's 'focusing on herself right now' 🙄",
+                    "Left you on read for 3 weeks straight",
+                    "Said yes but then brought her friend on the date",
+                    "Ghosted you to go spelunking with Brad",
+                    "Told you she's not ready to date anyone... posts date pics 2 days later",
+                    "Said you're 'really sweet' (the kiss of death)",
+                    "Asked if you could just be friends instead",
+                    "Claimed her phone was broken for a month"
+                ],
+                success_reasons: [
+                    "Actually said yes! (Simulation error?)",
+                    "Agreed to coffee ☕",
+                    "Wants to see your dog pics",
+                    "Said your memes are 'actually funny'",
+                    "Invited you to her friend's party"
+                ]
+            },
+            engineer: {
+                compatibility_threshold: 85,
+                red_flags: ["github_commits_per_day < 1", "uses_light_mode", "prefers_windows"],
+                green_flags: ["contributes_to_open_source", "tab_over_spaces", "uses_vim"],
+                bonus_points: {
+                    "knows_rust": 30,
+                    "hates_javascript": 20,
+                    "can_center_div": 25,
+                    "understands_recursion": 15
+                },
+                penalty_points: {
+                    "uses_notepad": -40,
+                    "thinks_html_is_programming": -35,
+                    "doesnt_comment_code": -20
+                },
+                fatal_flaws: ["copies_from_stackoverflow_only", "php_is_favorite_language"],
+                rejection_reasons: [
+                    "Your code review was too harsh",
+                    "Saw your commit messages (all 'fix stuff')",
+                    "Found out you don't use version control",
+                    "Discovered your variable naming conventions",
+                    "Your pull request was rejected... so were you"
+                ]
+            },
+            "middle-school": {
+                compatibility_threshold: 60,
+                red_flags: ["sits_with_popular_kids", "has_cooler_phone"],
+                green_flags: ["shares_lunch", "passes_notes", "same_favorite_band"],
+                bonus_points: {
+                    "good_at_dodgeball": 20,
+                    "has_pokemon_cards": 15,
+                    "mom_packs_good_snacks": 25
+                },
+                rejection_reasons: [
+                    "Her friend said you're 'weird'",
+                    "You tripped in front of her locker",
+                    "She likes the quarterback instead",
+                    "Your mom embarrassed you at pickup",
+                    "You failed the pop quiz she was impressed by"
+                ]
+            },
+            fantasy: {
+                compatibility_threshold: 75,
+                red_flags: ["charisma_stat < 12", "is_a_bard", "multiclassed_incorrectly"],
+                green_flags: ["high_wisdom", "good_at_roleplay", "brings_snacks_to_session"],
+                bonus_points: {
+                    "rolls_natural_20": 30,
+                    "has_cool_dice": 15,
+                    "DMs_regularly": 25
+                },
+                fatal_flaws: ["plays_chaotic_evil", "that_guy_behavior"],
+                rejection_reasons: [
+                    "Failed your charisma roll (rolled a 1)",
+                    "She's dating the paladin",
+                    "Your character backstory was too edgy",
+                    "You killed her favorite NPC",
+                    "TPK'd the party on session one"
+                ]
+            }
+        };
+
+        // Initialize game
+        function initGame() {
+            loadPreset('default');
+            updateUI();
+        }
+
+        function loadPreset(presetName) {
+            const preset = presets[presetName];
+            if (preset) {
+                document.getElementById('rules-json').value = JSON.stringify(preset, null, 2);
+            }
+        }
+
+        function calculateCompatibility() {
+            try {
+                const rules = JSON.parse(document.getElementById('rules-json').value);
+                let score = 50; // Base compatibility
+                
+                // Apply charisma bonus
+                score += gameState.charisma * 2;
+                
+                // Random factor
+                score += Math.random() * 20 - 10;
+                
+                // Apply some rule-based modifiers
+                if (rules.bonus_points) {
+                    Object.keys(rules.bonus_points).forEach(bonus => {
+                        if (Math.random() > 0.7) { // 30% chance of having each bonus
+                            score += rules.bonus_points[bonus] * 0.5;
+                        }
+                    });
+                }
+
+                return Math.max(0, Math.min(100, score));
+            } catch (e) {
+                return 50; // Default if JSON is invalid
+            }
+        }
+
+        function askOut() {
+            const compatibility = calculateCompatibility();
+            
+            try {
+                const rules = JSON.parse(document.getElementById('rules-json').value);
+                const threshold = rules.compatibility_threshold || 70;
+                
+                const success = compatibility >= threshold;
+                
+                if (success) {
+                    gameState.successes++;
+                    gameState.charisma += Math.floor(Math.random() * 2) + 1;
+                    showPopup(true, rules.success_reasons);
+                    updateMood('happy');
+                } else {
+                    gameState.rejections++;
+                    // Small chance to gain charisma from rejection (learning experience)
+                    if (Math.random() > 0.8) {
+                        gameState.charisma += 1;
+                    }
+                    showPopup(false, rules.rejection_reasons);
+                    updateMood(compatibility < 30 ? 'disgusted' : compatibility < 50 ? 'annoyed' : 'neutral');
+                }
+                
+                updateUI();
+                updateCompatibilityMeter();
+                
+            } catch (e) {
+                showPopup(false, ["Your dating rules are broken (JSON error)"]);
+            }
+        }
+
+        function showPopup(isSuccess, reasons) {
+            const reason = reasons[Math.floor(Math.random() * reasons.length)];
+            
+            // Add to log
+            gameState.logs.unshift({
+                timestamp: new Date().toLocaleTimeString(),
+                success: isSuccess,
+                reason: reason
+            });
+            
+            // Keep only last 10 logs
+            if (gameState.logs.length > 10) {
+                gameState.logs.pop();
+            }
+            
+            // Create popup
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.innerHTML = `
+                <h3>${isSuccess ? '🎉 SUCCESS!' : '💔 REJECTED'}</h3>
+                <p>${reason}</p>
+                <div class="popup-buttons">
+                    <button onclick="closePopup()" ${isSuccess ? '' : 'style="background: var(--accent-danger);"'}>
+                        ${isSuccess ? '😊 Nice!' : '😭 Cry'}
+                    </button>
+                    ${!isSuccess ? '<button onclick="buyUpgrade()">💰 Buy Upgrade</button>' : ''}
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+            
+            updateLogs();
+        }
+
+        function closePopup() {
+            document.querySelectorAll('.overlay, .popup').forEach(el => el.remove());
+        }
+
+        function buyUpgrade() {
+            if (gameState.rejections >= 5) {
+                gameState.charisma += 2;
+                gameState.rejections = Math.max(0, gameState.rejections - 3);
+                closePopup();
+                updateUI();
+            } else {
+                alert('Need at least 5 rejections to buy an upgrade!');
+            }
+        }
+
+        function updateMood(mood) {
+            gameState.currentMood = mood;
+            const sprite = document.getElementById('crush-sprite');
+            const moodText = document.getElementById('mood-text');
+            
+            sprite.className = `crush-sprite ${mood}`;
+            
+            const moods = {
+                happy: { emoji: '😍', text: 'Seems interested!' },
+                neutral: { emoji: '😊', text: 'Neutral vibes...' },
+                annoyed: { emoji: '😒', text: 'Getting annoyed...' },
+                disgusted: { emoji: '🤢', text: 'Completely grossed out' }
+            };
+            
+            if (moods[mood]) {
+                sprite.textContent = moods[mood].emoji;
+                moodText.textContent = moods[mood].text;
+            }
+        }
+
+        function updateCompatibilityMeter() {
+            const compatibility = calculateCompatibility();
+            const fill = document.getElementById('compatibility-fill');
+            const text = document.getElementById('compatibility-text');
+            
+            fill.style.width = `${compatibility}%`;
+            text.textContent = `${Math.round(compatibility)}% Compatible`;
+        }
+
+        function updateUI() {
+            document.getElementById('rejection-count').textContent = gameState.rejections;
+            document.getElementById('success-count').textContent = gameState.successes;
+            document.getElementById('charisma-level').textContent = gameState.charisma;
+        }
+
+        function updateLogs() {
+            const container = document.getElementById('log-container');
+            const existingLogs = container.querySelectorAll('.log-entry');
+            existingLogs.forEach(log => log.remove());
+            
+            gameState.logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${log.success ? 'success' : ''}`;
+                logEntry.innerHTML = `
+                    <div class="log-timestamp">${log.timestamp}</div>
+                    <div class="log-reason">${log.success ? '✅' : '❌'} ${log.reason}</div>
+                `;
+                container.appendChild(logEntry);
+            });
+        }
+
+        function exportRules() {
+            const rules = document.getElementById('rules-json').value;
+            const blob = new Blob([rules], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'my-dating-rules.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Update compatibility meter periodically
+        setInterval(updateCompatibilityMeter, 2000);
+
+        // Initialize on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>

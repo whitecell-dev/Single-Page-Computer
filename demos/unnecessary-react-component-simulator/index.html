@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unnecessary React Component Simulator</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --bg-card: #e43f5a;
+            --bg-claude: #533a7b;
+            --border-primary: #e43f5a;
+            --border-accent: #f39c12;
+            --text-primary: #eee;
+            --text-secondary: #bbb;
+            --text-muted: #888;
+            --accent-primary: #e43f5a;
+            --accent-secondary: #f39c12;
+            --accent-danger: #e74c3c;
+            --accent-success: #2ecc71;
+            --accent-warning: #f1c40f;
+            --shadow-glow: 0 0 25px rgba(228, 63, 90, 0.4);
+            --shadow-claude: 0 0 20px rgba(83, 58, 123, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 1rem;
+            height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-glow);
+            border: 2px solid var(--border-primary);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: white;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            margin-bottom: 0.5rem;
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        .header .tagline {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-style: italic;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .claude-section {
+            background: var(--bg-claude);
+            border: 2px solid var(--accent-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-claude);
+            position: relative;
+        }
+
+        .claude-sprite {
+            font-size: 6rem;
+            margin: 1rem 0;
+            transition: all 0.5s ease;
+            display: block;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .claude-sprite.chill { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg); }
+        .claude-sprite.vibing { transform: scale(1.1) rotate(5deg); filter: hue-rotate(30deg); animation: bounce 1s infinite; }
+        .claude-sprite.manic { transform: scale(1.2) rotate(-10deg); filter: hue-rotate(90deg); animation: shake 0.3s infinite; }
+        .claude-sprite.exploded { transform: scale(0.8) rotate(180deg); filter: invert(1) hue-rotate(180deg); }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1.1) rotate(5deg) translateY(0); }
+            50% { transform: scale(1.1) rotate(5deg) translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: scale(1.2) rotate(-10deg) translateX(0); }
+            25% { transform: scale(1.2) rotate(-10deg) translateX(-5px); }
+            75% { transform: scale(1.2) rotate(-10deg) translateX(5px); }
+        }
+
+        .vibe-text {
+            font-size: 1.2rem;
+            color: var(--accent-warning);
+            margin-bottom: 1rem;
+            min-height: 1.5rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .metric-card {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 1px solid var(--border-primary);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-warning);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+
+        .lag-meter {
+            background: rgba(0,0,0,0.3);
+            height: 30px;
+            border-radius: 15px;
+            margin: 1rem 0;
+            overflow: hidden;
+            border: 2px solid var(--border-primary);
+            position: relative;
+        }
+
+        .lag-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-success), var(--accent-warning), var(--accent-danger));
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+
+        .lag-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .action-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .component-tree {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .rules-editor {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--border-primary);
+            border-radius: 1rem;
+            padding: 1rem;
+            flex: 1;
+        }
+
+        .rules-editor h3 {
+            color: var(--accent-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .json-editor {
+            width: 100%;
+            height: 250px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        .json-editor:focus {
+            border-color: var(--border-accent);
+            box-shadow: 0 0 5px var(--border-accent);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .preset-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: var(--border-primary);
+            color: white;
+        }
+
+        .console-log {
+            grid-column: 1 / -1;
+            background: rgba(0,0,0,0.8);
+            border-radius: 1rem;
+            padding: 1rem;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--border-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 0.3rem 0;
+            border-left: 3px solid var(--accent-danger);
+            padding-left: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .log-entry.warning {
+            border-left-color: var(--accent-warning);
+            color: var(--accent-warning);
+        }
+
+        .log-entry.error {
+            border-left-color: var(--accent-danger);
+            color: var(--accent-danger);
+        }
+
+        .log-entry.success {
+            border-left-color: var(--accent-success);
+            color: var(--accent-success);
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-card);
+            border: 3px solid var(--accent-primary);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-glow), 0 0 50px rgba(0,0,0,0.8);
+            z-index: 1000;
+            max-width: 500px;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .popup h3 {
+            color: white;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .popup button {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .popup button:hover {
+            background: var(--border-primary);
+            color: white;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 999;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚛️💀 Unnecessary React Component Simulator 💀⚛️</h1>
+            <p class="tagline">"You're controlling Claude who is vibe-coding another guy inside a div that should be a span"</p>
+        </div>
+
+        <div class="left-panel">
+            <div class="claude-section">
+                <div class="vibe-text" id="vibe-text">Claude is chillin', ready to over-engineer...</div>
+                <div class="claude-sprite chill" id="claude-sprite">🤖</div>
+                
+                <div class="lag-meter">
+                    <div class="lag-fill" id="lag-fill" style="width: 0%;">
+                        <div class="lag-text" id="lag-text">0% Bundle Bloat</div>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="components-count">0</div>
+                        <div class="metric-label">Components</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="useeffects-count">0</div>
+                        <div class="metric-label">useEffects</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="bundle-size">0</div>
+                        <div class="metric-label">Bundle KB</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="vibe-level">1</div>
+                        <div class="metric-label">Vibe Level</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="spawnComponent()">🎨 Spawn Component</button>
+                    <button class="action-btn" onclick="addUseEffect()">🔄 Add useEffect</button>
+                    <button class="action-btn" onclick="stopNesting()">🛑 Stop Nesting!</button>
+                    <button class="action-btn" onclick="refactor()">🔧 Refactor to HTML</button>
+                </div>
+
+                <div class="component-tree" id="component-tree">
+                    <div>App/</div>
+                    <div>&nbsp;&nbsp;└── Waiting for components...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="rules-editor">
+                <h3>🔧 Unnecessary Component Rules (JSON)</h3>
+                <textarea class="json-editor" id="rules-json" placeholder="Define what makes components unnecessary..."></textarea>
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset('default')">Default Rules</button>
+                    <button class="preset-btn" onclick="loadPreset('enterprise')">Enterprise</button>
+                    <button class="preset-btn" onclick="loadPreset('startup')">Startup Chaos</button>
+                    <button class="preset-btn" onclick="loadPreset('consultant')">Consultant Special</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="console-log" id="console-log">
+            <div style="color: var(--accent-secondary); margin-bottom: 1rem;">📟 React DevTools Console 📟</div>
+            <div class="log-entry">Ready to over-engineer some components...</div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            components: 0,
+            useEffects: 0,
+            bundleSize: 0,
+            vibeLevel: 1,
+            lagPercentage: 0,
+            componentTree: ['App'],
+            logs: [],
+            isExploded: false
+        };
+
+        // Component name generators
+        const componentPrefixes = [
+            'Animated', 'Smart', 'Enhanced', 'Optimized', 'Dynamic', 'Interactive',
+            'Responsive', 'Customizable', 'Advanced', 'Premium', 'Pro', 'Ultra',
+            'Nested', 'Wrapper', 'Container', 'Provider', 'Higher-Order'
+        ];
+
+        const componentTypes = [
+            'Button', 'Card', 'Modal', 'Dropdown', 'Input', 'Form', 'List',
+            'Item', 'Component', 'Widget', 'Panel', 'Container', 'Wrapper',
+            'Provider', 'Context', 'Hook', 'Service', 'Manager', 'Factory'
+        ];
+
+        const componentSuffixes = [
+            'WithState', 'WithHooks', 'WithProps', 'Container', 'Provider',
+            'Manager', 'Controller', 'Handler', 'Processor', 'Generator',
+            'HOC', 'Wrapper', 'Enhanced', 'Pro', 'Premium', 'Ultra'
+        ];
+
+        // Rule Presets
+        const presets = {
+            default: {
+                unnecessary_threshold: 60,
+                red_flags: [
+                    "component_name_length > 25",
+                    "useState_for_constants",
+                    "useEffect_with_no_deps",
+                    "div_that_should_be_span",
+                    "wrapper_with_no_purpose"
+                ],
+                warning_triggers: [
+                    "too_many_useeffects",
+                    "nested_components > 5",
+                    "bundle_size > 500",
+                    "component_does_nothing"
+                ],
+                lag_factors: {
+                    "unnecessary_component": 10,
+                    "extra_useeffect": 15,
+                    "deep_nesting": 20,
+                    "unused_state": 8
+                },
+                vibe_responses: {
+                    "1": "Just getting started...",
+                    "3": "Claude is feeling creative",
+                    "5": "Vibing hard, making components",
+                    "7": "MAXIMUM OVERENGINEERING MODE",
+                    "10": "Claude has achieved componenthood"
+                },
+                unnecessary_reasons: [
+                    "This <ComponentButtonWrapperWithStateProvider> could've been a <button>",
+                    "Claude added a useEffect that only runs once with no dependencies",
+                    "Component has props.children but renders a hardcoded div",
+                    "useState for a value that never changes ('Hello World')",
+                    "Created <DivContainer> when a plain div would work",
+                    "useEffect cleanup function just console.logs 'bye'",
+                    "Component named <SmartEnhancedPremiumButton> that just renders <div>click</div>",
+                    "Added Context Provider for passing down a single boolean"
+                ],
+                explosion_warnings: [
+                    "Bundle size critical: mobile users crying",
+                    "Too many re-renders: React gave up",
+                    "Component tree too deep: stack overflow imminent",
+                    "useEffect infinite loop detected",
+                    "Deployed to production with console.log('lol')"
+                ]
+            },
+            enterprise: {
+                unnecessary_threshold: 80,
+                red_flags: [
+                    "AbstractFactoryManagerProvider",
+                    "ComponentComponentComponent",
+                    "service_layer_for_todo_app"
+                ],
+                unnecessary_reasons: [
+                    "Created AbstractButtonFactoryProvider for a login form",
+                    "Added Enterprise Design Pattern to render 'Hello World'",
+                    "Component implements 15 interfaces to display text",
+                    "Microservice architecture for a contact form",
+                    "Added observer pattern to watch a static string"
+                ]
+            },
+            startup: {
+                unnecessary_threshold: 40,
+                red_flags: [
+                    "move_fast_break_things",
+                    "no_tests_ship_it",
+                    "todo_in_production"
+                ],
+                unnecessary_reasons: [
+                    "Shipped with TODO: 'make this work later'",
+                    "useEffect dependency array is just [Math.random()]",
+                    "Component called <FixThisLater> in production",
+                    "Copy-pasted component 12 times instead of making it reusable",
+                    "State management is just passing props through 8 levels"
+                ]
+            },
+            consultant: {
+                unnecessary_threshold: 90,
+                red_flags: [
+                    "blockchain_for_counter",
+                    "ai_powered_button",
+                    "revolutionary_div"
+                ],
+                unnecessary_reasons: [
+                    "Added AI to determine if button should be clickable",
+                    "Blockchain-based state management for a todo list",
+                    "ML algorithm to choose between <div> and <span>",
+                    "Revolutionary paradigm shift: components that render themselves",
+                    "Quantum entangled useState hooks across dimensions"
+                ]
+            }
+        };
+
+        // Initialize game
+        function initGame() {
+            loadPreset('default');
+            updateUI();
+            startAutoVibe();
+        }
+
+        function loadPreset(presetName) {
+            const preset = presets[presetName];
+            if (preset) {
+                document.getElementById('rules-json').value = JSON.stringify(preset, null, 2);
+            }
+        }
+
+        function generateComponentName() {
+            const prefix = componentPrefixes[Math.floor(Math.random() * componentPrefixes.length)];
+            const type = componentTypes[Math.floor(Math.random() * componentTypes.length)];
+            const suffix = componentSuffixes[Math.floor(Math.random() * componentSuffixes.length)];
+            
+            // Sometimes skip parts for variety
+            const parts = [];
+            if (Math.random() > 0.3) parts.push(prefix);
+            parts.push(type);
+            if (Math.random() > 0.4) parts.push(suffix);
+            
+            return parts.join('');
+        }
+
+        function spawnComponent() {
+            if (gameState.isExploded) return;
+            
+            const componentName = generateComponentName();
+            gameState.components++;
+            gameState.bundleSize += Math.floor(Math.random() * 50) + 10;
+            gameState.componentTree.push(`  └── <${componentName}>`);
+            
+            // Chance to auto-add useEffect
+            if (Math.random() > 0.6) {
+                addUseEffect(true);
+            }
+            
+            evaluateUnnecessariness(componentName, 'component');
+            updateUI();
+            addLog(`Created <${componentName}>`, 'warning');
+        }
+
+        function addUseEffect(silent = false) {
+            if (gameState.isExploded) return;
+            
+            gameState.useEffects++;
+            gameState.bundleSize += Math.floor(Math.random() * 20) + 5;
+            
+            const effectReasons = [
+                "useEffect(() => { console.log('component mounted'); }, [])",
+                "useEffect(() => { setCount(count + 1); }); // Missing deps",
+                "useEffect(() => { localStorage.setItem('vibes', 'high'); })",
+                "useEffect(() => { document.title = 'React App'; }, [Math.random()])"
+            ];
+            
+            const reason = effectReasons[Math.floor(Math.random() * effectReasons.length)];
+            
+            evaluateUnnecessariness(reason, 'useeffect');
+            updateUI();
+            if (!silent) {
+                addLog(`Added ${reason}`, 'warning');
+            }
+        }
+
+        function stopNesting() {
+            if (gameState.components > 0) {
+                gameState.components = Math.max(0, gameState.components - 1);
+                gameState.bundleSize = Math.max(0, gameState.bundleSize - 30);
+                gameState.lagPercentage = Math.max(0, gameState.lagPercentage - 5);
+                updateUI();
+                addLog("Removed one unnecessary component", 'success');
+            }
+        }
+
+        function refactor() {
+            if (gameState.components > 2) {
+                gameState.components = Math.max(0, gameState.components - 2);
+                gameState.bundleSize = Math.max(0, gameState.bundleSize - 100);
+                gameState.lagPercentage = Math.max(0, gameState.lagPercentage - 15);
+                gameState.vibeLevel = Math.max(1, gameState.vibeLevel - 1);
+                updateUI();
+                addLog("Refactored components to plain HTML", 'success');
+                updateClaudeMood();
+            }
+        }
+
+        function evaluateUnnecessariness(itemName, type) {
+            try {
+                const rules = JSON.parse(document.getElementById('rules-json').value);
+                const threshold = rules.unnecessary_threshold || 60;
+                
+                // Calculate unnecessariness score
+                let score = 30; // Base score
+                
+                if (type === 'component') {
+                    score += itemName.length * 2; // Longer names = more unnecessary
+                    score += gameState.components * 3; // More components = more unnecessary
+                    if (itemName.includes('Wrapper') || itemName.includes('Container')) score += 20;
+                    if (itemName.includes('Enhanced') || itemName.includes('Smart')) score += 15;
+                }
+                
+                if (type === 'useeffect') {
+                    score += gameState.useEffects * 10;
+                    if (itemName.includes('[]')) score += 25; // Empty deps
+                    if (itemName.includes('Math.random')) score += 40; // Random deps
+                }
+                
+                // Add random factor
+                score += Math.random() * 20;
+                
+                const isUnnecessary = score >= threshold;
+                
+                if (isUnnecessary) {
+                    gameState.lagPercentage += rules.lag_factors?.unnecessary_component || 10;
+                    gameState.vibeLevel = Math.min(10, gameState.vibeLevel + 1);
+                    
+                    if (Math.random() > 0.7) {
+                        showUnnecessaryPopup(rules);
+                    }
+                }
+                
+                // Check for explosion
+                if (gameState.lagPercentage >= 100) {
+                    explodeApp(rules);
+                }
+                
+                updateClaudeMood();
+                
+            } catch (e) {
+                addLog("Rules JSON is broken (how meta)", 'error');
+            }
+        }
+
+        function showUnnecessaryPopup(rules) {
+            const reasons = rules.unnecessary_reasons || ["This component is unnecessary"];
+            const reason = reasons[Math.floor(Math.random() * reasons.length)];
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.innerHTML = `
+                <h3>🚨 UNNECESSARY DETECTED 🚨</h3>
+                <p>${reason}</p>
+                <div class="popup-buttons">
+                    <button onclick="closePopup()">😭 Accept Fate</button>
+                    <button onclick="increaseVibes(); closePopup();">🔥 Increase Vibes</button>
+                    <button onclick="deployAnyway(); closePopup();">🚢 Ship It Anyway</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+        }
+
+        function explodeApp(rules) {
+            gameState.isExploded = true;
+            gameState.lagPercentage = 100;
+            updateClaudeMood();
+            
+            const warnings = rules.explosion_warnings || ["App exploded on mobile"];
+            const warning = warnings[Math.floor(Math.random() * warnings.length)];
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.innerHTML = `
+                <h3>💥 PRODUCTION EXPLOSION 💥</h3>
+                <p>${warning}</p>
+                <p style="margin-top: 1rem;">Bundle Size: ${gameState.bundleSize}KB<br>
+                Components: ${gameState.components}<br>
+                useEffects: ${gameState.useEffects}</p>
+                <div class="popup-buttons">
+                    <button onclick="restartGame(); closePopup();">🔄 Restart</button>
+                    <button onclick="closePopup();">💀 Accept Death</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(popup);
+            
+            addLog(`💥 PRODUCTION EXPLOSION: ${warning}`, 'error');
+        }
+
+        function closePopup() {
+            document.querySelectorAll('.overlay, .popup').forEach(el => el.remove());
+        }
+
+        function increaseVibes() {
+            gameState.vibeLevel = Math.min(10, gameState.vibeLevel + 2);
+            updateClaudeMood();
+        }
+
+        function deployAnyway() {
+            gameState.lagPercentage += 20;
+            addLog("Deployed to production anyway 🚢", 'warning');
+        }
+
+        function restartGame() {
+            gameState = {
+                components: 0,
+                useEffects: 0,
+                bundleSize: 0,
+                vibeLevel: 1,
+                lagPercentage: 0,
+                componentTree: ['App'],
+                logs: [],
+                isExploded: false
+            };
+            updateUI();
+            addLog("Restarted - Claude is ready to over-engineer again", 'success');
+        }
+
+        function updateClaudeMood() {
+            const sprite = document.getElementById('claude-sprite');
+            const vibeText = document.getElementById('vibe-text');
+            
+            if (gameState.isExploded) {
+                sprite.className = 'claude-sprite exploded';
+                sprite.textContent = '🤯';
+                vibeText.textContent = 'Claude has achieved singularity through over-engineering';
+                return;
+            }
+            
+            if (gameState.vibeLevel >= 8) {
+                sprite.className = 'claude-sprite manic';
+                sprite.textContent = '🧠';
+                vibeText.textContent = 'MAXIMUM OVERENGINEERING ACHIEVED';
+            } else if (gameState.vibeLevel >= 5) {
+                sprite.className = 'claude-sprite vibing';
+                sprite.textContent = '🤖';
+                vibeText.textContent = 'Claude is vibing HARD, making components';
+            } else if (gameState.vibeLevel >= 3) {
+                sprite.className = 'claude-sprite vibing';
+                sprite.textContent = '😎';
+                vibeText.textContent = 'Claude is feeling creative';
+            } else {
+                sprite.className = 'claude-sprite chill';
+                sprite.textContent = '🤖';
+                vibeText.textContent = 'Claude is chillin\', ready to over-engineer...';
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('components-count').textContent = gameState.components;
+            document.getElementById('useeffects-count').textContent = gameState.useEffects;
+            document.getElementById('bundle-size').textContent = gameState.bundleSize;
+            document.getElementById('vibe-level').textContent = gameState.vibeLevel;
+            
+            // Update lag meter
+            const lagFill = document.getElementById('lag-fill');
+            const lagText = document.getElementById('lag-text');
+            lagFill.style.width = `${Math.min(100, gameState.lagPercentage)}%`;
+            lagText.textContent = `${Math.round(gameState.lagPercentage)}% Bundle Bloat`;
+            
+            // Update component tree
+            updateComponentTree();
+        }
+
+        function updateComponentTree() {
+            const tree = document.getElementById('component-tree');
+            let treeHtml = '<div>App/</div>';
+            
+            if (gameState.componentTree.length > 1) {
+                gameState.componentTree.slice(1).forEach((component, index) => {
+                    const indent = '&nbsp;&nbsp;'.repeat(Math.min(index + 1, 6));
+                    treeHtml += `<div>${indent}${component}</div>`;
+                });
+            } else {
+                treeHtml += '<div>&nbsp;&nbsp;└── Waiting for components...</div>';
+            }
+            
+            if (gameState.components > 10) {
+                treeHtml += '<div>&nbsp;&nbsp;└── ... and many more nested nightmares</div>';
+            }
+            
+            tree.innerHTML = treeHtml;
+        }
+
+        function addLog(message, type = 'warning') {
+            const timestamp = new Date().toLocaleTimeString();
+            gameState.logs.unshift({ timestamp, message, type });
+            
+            // Keep only last 20 logs
+            if (gameState.logs.length > 20) {
+                gameState.logs.pop();
+            }
+            
+            updateConsoleLog();
+        }
+
+        function updateConsoleLog() {
+            const console = document.getElementById('console-log');
+            const existingLogs = console.querySelectorAll('.log-entry');
+            existingLogs.forEach(log => log.remove());
+            
+            gameState.logs.forEach(log => {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${log.type}`;
+                logEntry.innerHTML = `[${log.timestamp}] ${log.message}`;
+                console.appendChild(logEntry);
+            });
+            
+            // Auto scroll to bottom
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function startAutoVibe() {
+            // Claude automatically adds components when vibing
+            setInterval(() => {
+                if (gameState.isExploded) return;
+                
+                // Higher vibe level = more likely to auto-generate
+                const autoChance = gameState.vibeLevel * 0.05; // 5% per vibe level
+                
+                if (Math.random() < autoChance) {
+                    const actions = [spawnComponent, addUseEffect];
+                    const randomAction = actions[Math.floor(Math.random() * actions.length)];
+                    randomAction();
+                    addLog("Claude auto-generated something unnecessary", 'warning');
+                }
+                
+                // Gradual vibe increase over time
+                if (Math.random() < 0.02) { // 2% chance per tick
+                    gameState.vibeLevel = Math.min(10, gameState.vibeLevel + 0.1);
+                    updateClaudeMood();
+                }
+                
+            }, 3000); // Every 3 seconds
+        }
+
+        function exportRules() {
+            const rules = document.getElementById('rules-json').value;
+            const blob = new Blob([rules], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'unnecessary-react-rules.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Easter eggs and bonus interactions
+        document.addEventListener('keydown', (e) => {
+            // Konami code equivalent: up up down down left right left right B A
+            if (e.code === 'KeyV' && e.ctrlKey) {
+                gameState.vibeLevel = 10;
+                updateClaudeMood();
+                addLog("VIBE LEVEL MAXIMIZED via cheat code", 'success');
+            }
+            
+            if (e.code === 'KeyR' && e.ctrlKey && e.shiftKey) {
+                e.preventDefault();
+                restartGame();
+            }
+        });
+
+        // Random component generation names for extra chaos
+        function addRandomUnnecessaryComponent() {
+            const unnecessaryPatterns = [
+                'ComponentComponent',
+                'WrapperWrapperWrapper',
+                'SmartEnhancedPremiumProButton',
+                'AbstractFactoryProviderManager',
+                'UltraNestedContainerDiv',
+                'QuantumEntangledStateHook'
+            ];
+            
+            const pattern = unnecessaryPatterns[Math.floor(Math.random() * unnecessaryPatterns.length)];
+            gameState.componentTree.push(`  └── <${pattern}>`);
+            gameState.components++;
+            gameState.bundleSize += 100;
+            gameState.lagPercentage += 25;
+            
+            addLog(`Claude created the abomination: <${pattern}>`, 'error');
+            updateUI();
+        }
+
+        // Bonus: simulate different developer archetypes
+        function simulateDeveloperType(type) {
+            switch(type) {
+                case 'junior':
+                    // Spawns lots of basic components
+                    for(let i = 0; i < 3; i++) spawnComponent();
+                    addLog("Junior dev mode: Everything needs a component!", 'warning');
+                    break;
+                case 'senior':
+                    // Over-architects everything
+                    addRandomUnnecessaryComponent();
+                    addLog("Senior dev mode: Implementing enterprise patterns", 'warning');
+                    break;
+                case 'architect':
+                    // Creates abstract factories
+                    gameState.vibeLevel = 10;
+                    gameState.bundleSize += 500;
+                    addLog("Architect mode: Abstract Factory Pattern for Hello World", 'error');
+                    break;
+            }
+            updateUI();
+            updateClaudeMood();
+        }
+
+        // Initialize on load
+        window.onload = initGame;
