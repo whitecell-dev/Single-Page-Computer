@@ -1,0 +1,23 @@
+{
+  "name": "@tree-os/axis-cli",
+  "version": "1.0.0",
+  "description": "Command-line runtime for SPC (Service Portable Container) files",
+  "main": "src/engine.js",
+  "bin": {
+    "axis": "./bin/axis.js"
+  },
+  "scripts": {
+    "test": "node bin/axis.js run examples/bitcoin.spc.json"
+  },
+  "keywords": ["spc", "tree-os", "calyx", "portable-logic"],
+  "author": "CALYX Team",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "node-fetch": "^2.7.0",
+    "chalk": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

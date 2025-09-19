@@ -1,0 +1,13 @@
+{
+  "name": "@tree-os/kern-compiler",
+  "version": "0.1.0",
+  "description": "Simple SPC to WASM/Bytecode compiler",
+  "bin": {
+    "kern": "./bin/kern.js"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2"
+  },
+  "license": "MIT"
+}
