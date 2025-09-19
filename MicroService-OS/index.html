@@ -4,6 +4,424 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MicroService OS — AI-Native Computing Environment</title>
+  
+  <style>
+:root {
+  --bg: #0b1020;
+  --panel: #0f172a;
+  --panel2: #0b1327;
+  --ink: #e5e7eb;
+  --muted: #9ca3af;
+  --ring: rgba(124, 58, 237, .35);
+  --accent: #7c3aed;
+  --ok: #34d399;
+  --bad: #f87171;
+  --info: #60a5fa;
+  --warn: #fbbf24;
+  --terminal: #0a0e1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #0b1020, #0a0f1f 40%, #0e1326);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 12px;
+  max-width: 1400px;
+  margin: 18px auto;
+  padding: 12px;
+  height: calc(100vh - 36px);
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .02));
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25), inset 0 0 0 1px rgba(255, 255, 255, .06);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  border: 0;
+  background: #1f2937;
+  color: var(--ink);
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: #283449;
+}
+
+.btn.small {
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.btn-accent {
+  background: var(--accent);
+}
+
+.btn-accent:hover {
+  filter: brightness(1.05);
+}
+
+.btn-ghost {
+  background: transparent;
+  box-shadow: 0 0 0 1px #26324a inset;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.title {
+  font-weight: 800;
+  letter-spacing: .2px;
+  margin: 0 0 6px;
+}
+
+.servicelist {
+  display: grid;
+  gap: 6px;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+.serviceitem {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--panel2);
+  border: 1px solid #1f2937;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.serviceitem:hover {
+  background: #0f1529;
+}
+
+.serviceitem.active {
+  outline: 2px solid var(--ring);
+}
+
+.service-status {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.service-status.running {
+  background: var(--ok);
+}
+
+.service-status.stopped {
+  background: var(--muted);
+}
+
+.service-status.error {
+  background: var(--bad);
+}
+
+.small {
+  font-size: 12px;
+}
+
+textarea, pre, code, input, select {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pane {
+  min-height: 420px;
+}
+
+textarea {
+  width: 100%;
+  height: 420px;
+  background: #0b1327;
+  color: #e2e8f0;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  padding: 12px;
+  resize: vertical;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: var(--accent);
+}
+
+.preview {
+  padding: 12px;
+  min-height: 420px;
+  background: #0b1327;
+  border: 1px solid #1f2937;
+  border-radius: 10px;
+  overflow-y: auto;
+}
+
+.terminal-section {
+  grid-column: 1/-1;
+  background: var(--terminal);
+  border: 1px solid #1f2937;
+  border-radius: 14px;
+  padding: 12px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.terminal-input {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.terminal-prompt {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.terminal-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.log-line {
+  margin: 2px 0;
+  padding: 2px 0;
+}
+
+.log-info {
+  color: var(--info);
+}
+
+.log-success {
+  color: var(--ok);
+}
+
+.log-error {
+  color: var(--bad);
+}
+
+.log-warn {
+  color: var(--warn);
+}
+
+.log-muted {
+  color: var(--muted);
+}
+
+.kpi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.kpi > div {
+  background: #121a2a;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+
+.big {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #26324a;
+  background: #0b1220;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+input[type="number"], input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: #0c1428;
+  color: #e2e8f0;
+  outline: none;
+}
+
+input[type="number"]:focus, input[type="text"]:focus {
+  border-color: var(--accent);
+}
+
+.footer {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.danger {
+  color: var(--bad);
+}
+
+.good {
+  color: var(--ok);
+}
+
+.info {
+  color: var(--info);
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.state-viewer {
+  background: #0a0e1a;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  max-height: 100px;
+  overflow-y: auto;
+  font-family: ui-monospace, monospace;
+  word-break: break-all;
+}
+
+.orchestration-panel {
+  background: var(--panel2);
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 8px;
+}
+
+.service-card {
+  background: var(--panel);
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.metric-display {
+  background: #121a2a;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 4px 0;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .editor {
+    grid-template-columns: 1fr;
+  }
+  
+  .pane, textarea {
+    min-height: 300px;
+    height: 300px;
+  }
+  
+  .terminal-section {
+    height: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+  </style>
 </head>
 <body>
   <div class="app">
@@ -24,7 +442,6 @@
         <input id="systemName" type="text" placeholder="System name" />
         <button class="btn" id="btnSaveName">Save</button>
       </div>
-
       <div class="orchestration-panel">
         <div class="small muted" style="margin-bottom:6px"><strong>System State</strong></div>
         <div class="state-viewer" id="globalState">{}</div>
@@ -33,11 +450,9 @@
           <button class="btn small" id="btnRefreshState">Refresh</button>
         </div>
       </div>
-
       <div class="muted small" style="margin-top:10px">Services</div>
       <div id="serviceList" class="servicelist"></div>
     </div>
-
     <!-- Editor / Preview -->
     <div class="card">
       <div class="bar" style="margin-bottom:8px">
@@ -55,12 +470,11 @@
       <div class="editor">
         <div class="pane">
           <textarea id="editor" placeholder="Service configuration (JSON)"></textarea>
-          <div class="footer">Service types: <code>monitor</code>, <code>processor</code>, <code>interface</code>, <code>connector</code>.</div>
+          <div class="footer">Service types: <code>monitor</code>, <code>processor</code>, <code>interface</code>, <code>connector</code>. Note: Interface calculations use sandboxed eval (demo only).</div>
         </div>
         <div class="pane preview" id="preview"></div>
       </div>
     </div>
-
     <!-- Terminal Interface -->
     <div class="card terminal-section">
       <div class="terminal-output" id="terminalOutput">
@@ -73,5 +487,1091 @@
       </div>
     </div>
   </div>
+
+  <script>
+// ===============================
+// MicroService OS Engine
+// ===============================
+class SPCEngine {
+  constructor() {
+    this.globalState = {};
+    this.services = new Map();
+    this.runningServices = new Set();
+    this.eventBus = new EventTarget();
+    this.commandHistory = [];
+    this.systemName = 'untitled';
+  }
+
+  // State management
+  updateGlobalState(key, value) {
+    this.globalState[key] = value;
+    this.eventBus.dispatchEvent(new CustomEvent('stateChange', { detail: { key, value } }));
+    this.refreshStateViewer();
+  }
+
+  getGlobalState(key) {
+    return key ? this.globalState[key] : { ...this.globalState };
+  }
+
+  clearGlobalState() {
+    this.globalState = {};
+    this.refreshStateViewer();
+  }
+
+  // Service lifecycle - FIXED: Store id in service object
+  registerService(id, config) {
+    this.services.set(id, { 
+      id,  // Store the id inside the service object
+      ...config, 
+      status: 'stopped',
+      lastRun: null,
+      outputs: {}
+    });
+    this.log(`Registered service: ${id}`, 'info');
+  }
+
+  startService(id) {
+    const service = this.services.get(id);
+    if (!service) return false;
+    
+    service.status = 'running';
+    this.runningServices.add(id);
+    this.log(`Started service: ${id}`, 'success');
+    
+    // Auto-run if it's a connector type
+    if (service.type === 'connector' && service.spec.url) {
+      this.runService(id);
+    }
+    
+    return true;
+  }
+
+  stopService(id) {
+    const service = this.services.get(id);
+    if (!service) return false;
+    
+    service.status = 'stopped';
+    this.runningServices.delete(id);
+    this.log(`Stopped service: ${id}`, 'warn');
+    return true;
+  }
+
+  async runService(id) {
+    const service = this.services.get(id);
+    if (!service) {
+      this.log(`Service ${id} not found`, 'error');
+      return;
+    }
+    
+    if (service.status !== 'running') {
+      // Auto-start the service
+      this.startService(id);
+    }
+
+    try {
+      service.lastRun = new Date().toISOString();
+      
+      switch (service.type) {
+        case 'connector':
+          await this.runConnector(service);
+          break;
+        case 'processor':
+          await this.runProcessor(service);
+          break;
+        case 'monitor':
+          await this.runMonitor(service);
+          break;
+        case 'interface':
+          this.runInterface(service);
+          break;
+      }
+      
+    } catch (error) {
+      service.status = 'error';
+      this.log(`Service ${id} error: ${error.message}`, 'error');
+    }
+  }
+
+  // Service type implementations - FIXED: Better error handling
+  async runConnector(service) {
+	  const { url, method = 'GET', headers = {} } = service.spec;
+	  try {
+		const r = await fetch(url, { method, headers });
+		if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+		const data = await r.json();
+
+		const outputKey = service.spec.outputKey || service.id + '_data';
+		let final = data;
+
+		if (service.spec.rules) {
+		  const processed = this.applyRules(data, service.spec.rules);
+		  // default behavior: merge processed fields into the same outputKey
+		  const mode = service.spec.rules.mode || 'merge'; // 'merge' | 'replace' | 'dual'
+		  if (mode === 'replace') {
+			final = processed;
+		  } else if (mode === 'dual') {
+			// keep both (back-compat)
+			this.updateGlobalState(outputKey + '_processed', processed);
+			final = data;
+		  } else { // merge (default)
+			final = { ...data, ...processed };
+		  }
+		}
+
+		this.updateGlobalState(outputKey, final);
+		this.log(`Connector ${service.id} fetched data`, 'success');
+	  } catch (e) {
+		service.status = 'error';
+		this.log(`Connector ${service.id} fetch failed: ${e.message}`, 'error');
+	  }
+	}
+
+
+  async runProcessor(service) {
+    const { inputKey, outputKey, transform } = service.spec;
+    const inputData = this.getGlobalState(inputKey);
+    
+    if (!inputData) {
+      this.log(`Processor ${service.id}: No input data found for key ${inputKey}`, 'warn');
+      return;
+    }
+    
+    // Apply transformation
+    let result = inputData;
+    if (transform) {
+      result = this.applyRules(inputData, { rules: transform });
+    }
+    
+    this.updateGlobalState(outputKey, result);
+    this.log(`Processor ${service.id} transformed data`, 'success');
+  }
+
+  async runMonitor(service) {
+    const { checks, thresholds } = service.spec;
+    const results = {};
+    
+    for (const check of checks || []) {
+      const data = this.getGlobalState(check.dataKey);
+      if (data) {
+        const value = this.evaluateExpression(check.expression, data);
+        results[check.name] = {
+          value,
+          status: this.evaluateThreshold(value, thresholds[check.name] || {})
+        };
+      }
+    }
+    
+    this.updateGlobalState(service.id + '_monitoring', results);
+    this.log(`Monitor ${service.id} updated`, 'info');
+  }
+
+  runInterface(service) {
+    // Interface services are rendered in the preview pane
+    this.log(`Interface ${service.id} ready`, 'info');
+  }
+
+  // Rule evaluation engine
+  applyRules(data, ruleConfig) {
+    let state = JSON.parse(JSON.stringify(data));
+    const rules = ruleConfig.rules || [];
+    
+    for (const rule of rules) {
+      if (this.evaluateCondition(rule.if, state)) {
+        if (rule.then) {
+          for (const [key, expression] of Object.entries(rule.then)) {
+            state[key] = this.resolveTemplate(expression, state);
+          }
+        }
+      }
+    }
+    
+    return state;
+  }
+
+	evaluateCondition(condition, context) {
+	  if (!condition) return true;
+	  try {
+		const ctx = { ...context, data: context };  // alias
+		const func = new Function(...Object.keys(ctx), `return ${condition}`);
+		return Boolean(func(...Object.values(ctx)));
+	  } catch (e) {
+		this.log(`Condition evaluation error: ${e.message}`, 'error');
+		return false;
+	  }
+	}
+
+	resolveTemplate(template, context) {
+	  if (typeof template !== 'string') return template;
+	  const match = template.match(/^\{\{\s*(.*?)\s*\}\}$/);
+	  if (!match) return template;
+	  try {
+		const ctx = { ...context, data: context };  // alias
+		const func = new Function(...Object.keys(ctx), `return (${match[1]})`);
+		return func(...Object.values(ctx));
+	  } catch (e) {
+		this.log(`Template evaluation error: ${e.message}`, 'error');
+		return template;
+	  }
+	}
+  evaluateExpression(expression, data) {
+    try {
+      const func = new Function('data', `return ${expression}`);
+      return func(data);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // FIXED: Support both threshold styles
+  evaluateThreshold(value, t = {}) {
+    // above/below style (used by monitors)
+    if (typeof t.above === 'number' && value >= t.above) return 'critical';
+    if (typeof t.below === 'number' && value <= t.below) return 'critical';
+    // warning band support
+    if (typeof t.warnAbove === 'number' && value >= t.warnAbove) return 'warning';
+    if (typeof t.warnBelow === 'number' && value <= t.warnBelow) return 'warning';
+    // legacy critical/warning
+    if (typeof t.critical === 'number' && value >= t.critical) return 'critical';
+    if (typeof t.warning === 'number' && value >= t.warning) return 'warning';
+    return 'ok';
+  }
+
+  // Terminal/CLI interface
+  executeCommand(command) {
+    this.commandHistory.push(command);
+    const parts = command.trim().split(' ');
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    switch (cmd) {
+      case 'help':
+        return this.showHelp();
+      case 'ps':
+        return this.listServices();
+      case 'start':
+        return this.startServiceCommand(args[0]);
+      case 'stop':
+        return this.stopServiceCommand(args[0]);
+      case 'run':
+        return this.runServiceCommand(args[0]);
+      case 'state':
+        return this.showState(args[0]);
+      case 'logs':
+        return this.showLogs(args[0]);
+      case 'clear':
+        return this.clearTerminal();
+      case 'export':
+        return this.exportSystem();
+      case 'create':
+        return this.createServiceCommand(args);
+      default:
+        return `Unknown command: ${cmd}. Type 'help' for available commands.`;
+    }
+  }
+
+  showHelp() {
+    return `Available commands:
+• ps                  - List all services
+• start <service>     - Start a service
+• stop <service>      - Stop a service  
+• run <service>       - Execute a service once
+• state [key]         - Show global state
+• logs <service>      - Show service logs
+• create <type> <id>  - Create new service
+• export             - Export system config
+• clear              - Clear terminal
+• help               - Show this help`;
+  }
+
+  listServices() {
+    if (this.services.size === 0) return 'No services registered';
+    
+    let output = 'SERVICES:\n';
+    for (const [id, service] of this.services) {
+      const status = service.status.toUpperCase().padEnd(8);
+      const type = service.type.padEnd(10);
+      output += `${id.padEnd(15)} ${status} ${type} ${service.title || ''}\n`;
+    }
+    return output;
+  }
+
+  startServiceCommand(id) {
+    if (!id) return 'Usage: start <service_id>';
+    return this.startService(id) ? `Started ${id}` : `Service ${id} not found`;
+  }
+
+  stopServiceCommand(id) {
+    if (!id) return 'Usage: stop <service_id>';
+    return this.stopService(id) ? `Stopped ${id}` : `Service ${id} not found`;
+  }
+
+  async runServiceCommand(id) {
+    if (!id) return 'Usage: run <service_id>';
+    if (!this.services.has(id)) return `Service ${id} not found`;
+    
+    await this.runService(id);
+    return `Executed ${id}`;
+  }
+
+  showState(key) {
+    const state = this.getGlobalState(key);
+    return JSON.stringify(state, null, 2);
+  }
+
+  showLogs(serviceId) {
+    return `Logs for ${serviceId}: (Feature coming soon)`;
+  }
+
+  clearTerminal() {
+    return null; // Special return value to clear terminal
+  }
+
+  // FIXED: Export with proper schema
+  exportSystem() {
+    const config = {
+      spc_version: "1.0",
+      meta: { 
+        name: this.systemName || "untitled", 
+        exported_at: new Date().toISOString() 
+      },
+      services: Object.fromEntries(this.services),
+      state: this.globalState
+    };
+    
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(config.meta.name||'system').replace(/\W+/g,'-').toLowerCase()}.spc.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    this.log(`Exported ${this.services.size} services to ${a.download}`, 'success');
+    return 'System exported to file';
+  }
+
+  createServiceCommand(args) {
+    const [type, id] = args;
+    if (!type || !id) return 'Usage: create <type> <id>';
+    
+    const template = this.getServiceTemplate(type);
+    if (!template) return `Unknown service type: ${type}`;
+    
+    template.id = id;
+    this.registerService(id, template);
+    return `Created ${type} service: ${id}`;
+  }
+
+  // Logging
+  log(message, level = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = { timestamp, message, level };
+    
+    // Add to terminal output
+    this.addTerminalLog(`[${timestamp}] ${message}`, level);
+  }
+
+  addTerminalLog(message, level = 'info') {
+    const output = document.getElementById('terminalOutput');
+    if (!output) return;
+    
+    const div = document.createElement('div');
+    div.className = `log-line log-${level}`;
+    div.textContent = message;
+    output.appendChild(div);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  refreshStateViewer() {
+    const viewer = document.getElementById('globalState');
+    if (viewer) {
+      viewer.textContent = JSON.stringify(this.globalState, null, 2);
+    }
+  }
+
+  // FIXED: Service templates with proper context variables
+  getServiceTemplate(type) {
+    const templates = {
+      monitor: {
+        type: 'monitor',
+        title: 'New Monitor',
+        spec: {
+          checks: [
+            { name: 'health', dataKey: 'api_data', expression: 'data.status === "ok"' }
+          ],
+          thresholds: {
+            health: { warning: 0.8, critical: 0.5 }
+          }
+        }
+      },
+      processor: {
+        type: 'processor',
+        title: 'New Processor',
+        spec: {
+          inputKey: 'raw_data',
+          outputKey: 'processed_data',
+          transform: [
+            { name: 'format', if: 'value !== undefined', then: { formatted: '{{ value * 100 }}' } }
+          ]
+        }
+      },
+      interface: {
+        type: 'interface',
+        title: 'New Interface',
+        spec: {
+          inputs: [
+            { name: 'value', label: 'Value', type: 'number', default: 0 }
+          ],
+          calculation: 'inputs.value * 2',
+          outputKey: 'interface_data'
+        }
+      },
+      connector: {
+        type: 'connector',
+        title: 'New Connector',
+        spec: {
+          url: 'https://api.example.com/data',
+          method: 'GET',
+          outputKey: 'api_data',
+          rules: {
+            rules: [
+              { name: 'process', if: 'true', then: { processed: '{{ length }}' } }
+            ]
+          }
+        }
+      }
+    };
+    
+    return templates[type] ? JSON.parse(JSON.stringify(templates[type])) : null;
+  }
+}
+
+// ===============================
+// UI Management
+// ===============================
+const engine = new SPCEngine();
+let currentServiceId = null;
+const STORAGE_KEY = 'microservice_os_v1';
+
+// DOM helpers
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+// Initialize system
+function init() {
+  loadSystem();
+  bindEvents();
+  renderServiceList();
+  updateUI();
+  
+  // Load sample services if empty
+  if (engine.services.size === 0) {
+    loadSampleServices();
+  }
+  
+  // Boot SPC after initialization
+  bootSPC();
+}
+
+function loadSampleServices() {
+  // Bitcoin price connector
+  engine.registerService('btc-price', {
+    type: 'connector',
+    title: 'Bitcoin Price Feed',
+    spec: {
+      url: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
+      outputKey: 'btc_data',
+      rules: {
+        rules: [
+          { name: 'extract_price', if: 'bitcoin', then: { 
+            price: '{{ bitcoin.usd }}', 
+            change: '{{ bitcoin.usd_24h_change }}' 
+          }}
+        ]
+      }
+    }
+  });
+  
+  // ROI processor
+  engine.registerService('roi-calc', {
+    type: 'processor',
+    title: 'ROI Calculator',
+    spec: {
+      inputKey: 'btc_data',
+      outputKey: 'roi_result',
+      transform: [
+        { name: 'roi', if: 'price', then: { roi: '{{ (price - 30000) / 30000 * 100 }}' } }
+      ]
+    }
+  });
+  
+  // Price monitor
+  engine.registerService('price-monitor', {
+    type: 'monitor',
+    title: 'Price Alert Monitor',
+    spec: {
+      checks: [
+        { name: 'price', dataKey: 'btc_data', expression: 'data.price' }
+      ],
+      thresholds: {
+        price: { above: 80000, below: 20000 }
+      }
+    }
+  });
+  
+  // Calculator interface
+  engine.registerService('roi-ui', {
+    type: 'interface',
+    title: 'ROI Sandbox',
+    spec: {
+      inputs: [
+        { name: 'initial', label: 'Initial Investment', type: 'number', default: 30000 },
+        { name: 'final', label: 'Final Value', type: 'number', default: 45000 }
+      ],
+      calculation: '((inputs.final - inputs.initial) / inputs.initial) * 100',
+      outputKey: 'roi_interface_result'
+    }
+  });
+  
+  renderServiceList();
+}
+
+// FIXED: Tolerant import function
+function importSystemObject(config) {
+  try {
+    engine.services.clear();
+    engine.runningServices.clear();
+
+    const src = config.services;
+    if (Array.isArray(src)) {
+      // Handle array formats (legacy)
+      src.forEach(item => {
+        if (Array.isArray(item)) { 
+          const [id, svc] = item; 
+          engine.registerService(id, svc); 
+        }
+        else if (item && item.id) { 
+          const {id, ...svcData} = item;
+          engine.registerService(id, svcData); 
+        }
+      });
+    } else if (src && typeof src === 'object') {
+      // Handle object format (preferred)
+      Object.entries(src).forEach(([id, svc]) => engine.registerService(id, svc));
+    }
+
+    engine.globalState = config.state || config.globalState || {};
+    engine.systemName = config.meta?.name || 'imported';
+    
+    updateUI(); 
+    persistSystem();
+    engine.log('SPC loaded', 'success');
+  } catch (e) {
+    engine.log(`SPC import failed: ${e.message}`, 'error');
+  }
+}
+
+function bindEvents() {
+  // Service creation buttons
+  $('#btnNewMonitor').onclick = () => createService('monitor');
+  $('#btnNewProcessor').onclick = () => createService('processor');
+  $('#btnNewInterface').onclick = () => createService('interface');
+  $('#btnNewConnector').onclick = () => createService('connector');
+  
+  // System controls
+  $('#btnSaveName').onclick = saveSystemName;
+  $('#btnExport').onclick = () => engine.exportSystem();
+  $('#fileIn').onchange = importSystem;
+  
+  // Service controls
+  $('#btnStart').onclick = startCurrentService;
+  $('#btnStop').onclick = stopCurrentService;
+  $('#btnApply').onclick = applyServiceChanges;
+  $('#btnDelete').onclick = deleteCurrentService;
+  
+  // State management
+  $('#btnClearState').onclick = () => {
+    engine.clearGlobalState();
+    engine.log('Global state cleared', 'info');
+  };
+  $('#btnRefreshState').onclick = () => engine.refreshStateViewer();
+  
+  // Terminal
+  const terminalInput = $('#terminalInput');
+  terminalInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      const command = terminalInput.value.trim();
+      if (command) {
+        engine.addTerminalLog(`spc> ${command}`, 'muted');
+        const result = engine.executeCommand(command);
+        
+        if (result === null) {
+          // Clear terminal
+          $('#terminalOutput').innerHTML = '';
+          engine.addTerminalLog('MicroService OS v1.0 - AI-Native Computing Environment', 'success');
+          engine.addTerminalLog('Type \'help\' for available commands', 'info');
+        } else if (result) {
+          engine.addTerminalLog(result, 'info');
+        }
+        
+        terminalInput.value = '';
+        updateUI(); // Refresh UI after commands
+      }
+    }
+  };
+}
+
+function createService(type) {
+  const template = engine.getServiceTemplate(type);
+  if (!template) return;
+  
+  const id = `${type}-${Date.now().toString(36).slice(-4)}`;
+  template.id = id;
+  
+  engine.registerService(id, template);
+  currentServiceId = id;
+  
+  renderServiceList();
+  updateUI();
+  persistSystem();
+}
+
+function renderServiceList() {
+  const container = $('#serviceList');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  for (const [id, service] of engine.services) {
+    const item = document.createElement('div');
+    item.className = `serviceitem ${id === currentServiceId ? 'active' : ''}`;
+    
+    const statusClass = service.status === 'running' ? 'running' : 
+                       service.status === 'error' ? 'error' : 'stopped';
+    
+    item.innerHTML = `
+      <div><strong>${service.title || id}</strong></div>
+      <div class="small muted">${service.type}</div>
+      <div class="service-status ${statusClass}"></div>
+    `;
+    
+    item.onclick = () => {
+      currentServiceId = id;
+      renderServiceList();
+      updateUI();
+    };
+    
+    container.appendChild(item);
+  }
+}
+
+function updateUI() {
+  const service = engine.services.get(currentServiceId);
+  
+  // Update current service display
+  const nameEl = $('#currentName');
+  if (nameEl) nameEl.textContent = service ? (service.title || currentServiceId) : '(none)';
+  
+  // Update status indicator
+  const statusEl = $('#currentStatus');
+  if (statusEl) {
+    if (service) {
+      statusEl.className = `service-status ${service.status}`;
+      statusEl.style.display = 'block';
+    } else {
+      statusEl.style.display = 'none';
+    }
+  }
+  
+  // Update editor
+  const editor = $('#editor');
+  if (editor) {
+    editor.value = service ? JSON.stringify(service, null, 2) : '';
+  }
+  
+  // Update preview
+  renderServicePreview();
+  
+  // Update service list active state
+  renderServiceList();
+  
+  // Refresh state viewer
+  engine.refreshStateViewer();
+}
+
+function renderServicePreview() {
+  const preview = $('#preview');
+  if (!preview) return;
+  
+  const service = engine.services.get(currentServiceId);
+  
+  if (!service) {
+    preview.innerHTML = '<div class="muted">No service selected</div>';
+    return;
+  }
+  
+  preview.innerHTML = '';
+  
+  // Service header
+  const header = document.createElement('div');
+  header.className = 'service-card';
+  header.innerHTML = `
+    <div class="bar">
+      <strong>${service.title || service.id}</strong>
+      <div class="spacer"></div>
+      <span class="pill">${service.type}</span>
+    </div>
+    <div class="small muted">Status: ${service.status}</div>
+    ${service.lastRun ? `<div class="small muted">Last run: ${new Date(service.lastRun).toLocaleTimeString()}</div>` : ''}
+  `;
+  preview.appendChild(header);
+  
+  // Type-specific preview
+  switch (service.type) {
+    case 'connector':
+      renderConnectorPreview(preview, service);
+      break;
+    case 'processor':
+      renderProcessorPreview(preview, service);
+      break;
+    case 'monitor':
+      renderMonitorPreview(preview, service);
+      break;
+    case 'interface':
+      renderInterfacePreview(preview, service);
+      break;
+  }
+}
+
+function renderConnectorPreview(container, service) {
+  const card = document.createElement('div');
+  card.className = 'service-card';
+  
+  const { url, outputKey } = service.spec;
+  const data = engine.getGlobalState(outputKey);
+  
+  card.innerHTML = `
+    <div><strong>Endpoint:</strong> ${url}</div>
+    <div><strong>Output Key:</strong> ${outputKey}</div>
+    ${data ? `<div class="metric-display">${JSON.stringify(data, null, 2)}</div>` : '<div class="muted">No data fetched yet</div>'}
+  `;
+  
+  const runBtn = document.createElement('button');
+  runBtn.className = 'btn';
+  runBtn.textContent = 'Fetch Now';
+  runBtn.onclick = async () => {
+    await engine.runService(service.id);
+    setTimeout(() => renderServicePreview(), 500);
+  };
+  
+  card.appendChild(runBtn);
+  container.appendChild(card);
+}
+
+function renderProcessorPreview(container, service) {
+  const card = document.createElement('div');
+  card.className = 'service-card';
+  
+  const { inputKey, outputKey } = service.spec;
+  const inputData = engine.getGlobalState(inputKey);
+  const outputData = engine.getGlobalState(outputKey);
+  
+  card.innerHTML = `
+    <div><strong>Input Key:</strong> ${inputKey}</div>
+    <div><strong>Output Key:</strong> ${outputKey}</div>
+    ${inputData ? `<div class="metric-display">Input: ${JSON.stringify(inputData, null, 2)}</div>` : '<div class="muted">No input data</div>'}
+    ${outputData ? `<div class="metric-display">Output: ${JSON.stringify(outputData, null, 2)}</div>` : '<div class="muted">No output data</div>'}
+  `;
+  
+  const runBtn = document.createElement('button');
+  runBtn.className = 'btn';
+  runBtn.textContent = 'Run Processor';
+  runBtn.onclick = async () => {
+    await engine.runService(service.id);
+    setTimeout(() => renderServicePreview(), 500);
+  };
+  
+  card.appendChild(runBtn);
+  container.appendChild(card);
+}
+
+function renderMonitorPreview(container, service) {
+  const card = document.createElement('div');
+  card.className = 'service-card';
+  
+  const monitorData = engine.getGlobalState(service.id + '_monitoring');
+  
+  if (monitorData) {
+    card.innerHTML = '<div><strong>Monitoring Results:</strong></div>';
+    for (const [check, result] of Object.entries(monitorData)) {
+      const statusColor = result.status === 'ok' ? 'var(--ok)' : 
+                         result.status === 'warning' ? 'var(--warn)' : 'var(--bad)';
+      
+      const checkDiv = document.createElement('div');
+      checkDiv.className = 'metric-display';
+      checkDiv.innerHTML = `
+        <div>${check}: ${result.value}</div>
+        <div style="color: ${statusColor}">Status: ${result.status}</div>
+      `;
+      card.appendChild(checkDiv);
+    }
+  } else {
+    card.innerHTML = '<div class="muted">No monitoring data yet</div>';
+  }
+  
+  const runBtn = document.createElement('button');
+  runBtn.className = 'btn';
+  runBtn.textContent = 'Run Monitor';
+  runBtn.onclick = async () => {
+    await engine.runService(service.id);
+    setTimeout(() => renderServicePreview(), 500);
+  };
+  
+  card.appendChild(runBtn);
+  container.appendChild(card);
+}
+
+function renderInterfacePreview(container, service) {
+  const card = document.createElement('div');
+  card.className = 'service-card';
+  
+  const { inputs, calculation } = service.spec;
+  if (!inputs) {
+    card.innerHTML = '<div class="muted">No inputs defined</div>';
+    container.appendChild(card);
+    return;
+  }
+  
+  card.innerHTML = '<div><strong>Interactive Interface:</strong></div>';
+  
+  const form = document.createElement('div');
+  form.className = 'grid2';
+  
+  const inputValues = {};
+  
+  inputs.forEach(input => {
+    const field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = `
+      <label class="small muted">${input.label}</label>
+      <input type="${input.type}" value="${input.default || ''}" data-name="${input.name}">
+    `;
+    
+    const inputEl = field.querySelector('input');
+    inputValues[input.name] = Number(input.default || 0);
+    
+    inputEl.oninput = () => {
+      inputValues[input.name] = input.type === 'number' ? Number(inputEl.value) : inputEl.value;
+      updateResult();
+    };
+    
+    form.appendChild(field);
+  });
+  
+  const resultDiv = document.createElement('div');
+  resultDiv.className = 'metric-display';
+  resultDiv.style.gridColumn = '1 / -1';
+  
+  function updateResult() {
+    if (calculation) {
+      try {
+        const func = new Function('inputs', `return ${calculation}`);
+        const result = func(inputValues);
+        resultDiv.textContent = `Result: ${result}`;
+        
+        // Update global state
+        engine.updateGlobalState(service.spec.outputKey || service.id + '_result', {
+          inputs: inputValues,
+          result
+        });
+      } catch (e) {
+        resultDiv.textContent = `Error: ${e.message}`;
+      }
+    }
+  }
+  
+  updateResult();
+  
+  card.appendChild(form);
+  card.appendChild(resultDiv);
+  container.appendChild(card);
+}
+
+function startCurrentService() {
+  if (currentServiceId && engine.startService(currentServiceId)) {
+    updateUI();
+    persistSystem();
+  }
+}
+
+function stopCurrentService() {
+  if (currentServiceId && engine.stopService(currentServiceId)) {
+    updateUI();
+    persistSystem();
+  }
+}
+
+// FIXED: Better JSON validation
+function applyServiceChanges() {
+  if (!currentServiceId) return;
+  
+  try {
+    const config = JSON.parse($('#editor').value);
+    engine.services.set(currentServiceId, config);
+    engine.log(`Updated service: ${currentServiceId}`, 'success');
+    updateUI();
+    persistSystem();
+  } catch (e) {
+    const match = e.message.match(/position (\d+)/);
+    const position = match ? ` at position ${match[1]}` : '';
+    engine.log(`JSON parse error${position}: ${e.message}`, 'error');
+  }
+}
+
+function deleteCurrentService() {
+  if (!currentServiceId) return;
+  
+  if (confirm(`Delete service ${currentServiceId}?`)) {
+    engine.services.delete(currentServiceId);
+    engine.runningServices.delete(currentServiceId);
+    engine.log(`Deleted service: ${currentServiceId}`, 'warn');
+    
+    currentServiceId = null;
+    updateUI();
+    persistSystem();
+  }
+}
+
+function saveSystemName() {
+  const name = $('#systemName').value.trim();
+  if (name) {
+    engine.systemName = name;
+    engine.updateGlobalState('system_name', name);
+    engine.log(`System renamed to: ${name}`, 'info');
+    persistSystem();
+  }
+}
+
+function importSystem(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const config = JSON.parse(reader.result);
+      importSystemObject(config);
+      currentServiceId = null;
+    } catch (e) {
+      engine.log(`Import failed: ${e.message}`, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function persistSystem() {
+  try {
+    const system = {
+      services: Array.from(engine.services.entries()),
+      globalState: engine.globalState,
+      systemName: engine.systemName,
+      currentServiceId,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(system));
+  } catch (e) {
+    engine.log(`Persist failed: ${e.message}`, 'error');
+  }
+}
+
+function loadSystem() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    
+    const system = JSON.parse(saved);
+    
+    // Restore services
+    if (system.services) {
+      system.services.forEach(([id, service]) => {
+        engine.services.set(id, service);
+      });
+    }
+    
+    // Restore state
+    engine.globalState = system.globalState || {};
+    engine.systemName = system.systemName || 'untitled';
+    currentServiceId = system.currentServiceId || null;
+    
+    engine.log('System loaded from storage', 'info');
+    
+  } catch (e) {
+    engine.log(`Load failed: ${e.message}`, 'error');
+  }
+}
+
+// FIXED: Deck-shell boot function
+async function bootSPC() {
+  let spc = null;
+
+  // 1) Check for inline SPC
+  const inline = document.getElementById('spc');
+  if (inline?.textContent?.trim()) {
+    try { 
+      spc = JSON.parse(inline.textContent); 
+    } catch(e) {
+      console.warn('Failed to parse inline SPC:', e);
+    }
+  }
+  
+  // 2) Check for URL param or default file
+  if (!spc) {
+    const url = new URLSearchParams(location.search).get('spc') || 'spc.json';
+    try { 
+      const r = await fetch(url, {cache:'no-store'}); 
+      if (r.ok) spc = await r.json(); 
+    } catch(e) {
+      // Silent fail - no SPC file is OK
+    }
+  }
+  
+  // 3) Load SPC if found
+  if (spc && window.engine && typeof importSystemObject === 'function') {
+    importSystemObject(spc);
+    engine.log('Auto-loaded SPC configuration', 'success');
+  }
+}
+
+// Auto-save every 30 seconds
+setInterval(persistSystem, 30000);
+
+// FIXED: Actually trigger init on DOM ready
+document.addEventListener('DOMContentLoaded', init);
+  </script>
+
+  <!-- Optional inline SPC configuration (for CodePen or embedded deployments) -->
+  <!-- Uncomment and modify to auto-load a specific configuration
+  <script id="spc" type="application/json">
+  {
+    "spc_version": "1.0",
+    "meta": { "name": "btc-roi-demo" },
+    "services": {
+      "btc-price": {
+        "type": "connector",
+        "title": "Bitcoin Price Feed",
+        "spec": {
+          "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true",
+          "outputKey": "btc_data",
+          "rules": { "rules": [
+            { "name": "extract_price", "if": "bitcoin", "then": { "price": "{{ bitcoin.usd }}", "change": "{{ bitcoin.usd_24h_change }}" } }
+          ]}
+        }
+      }
+    },
+    "state": {}
+  }
+  </script>
+  -->
+
 </body>
 </html>
