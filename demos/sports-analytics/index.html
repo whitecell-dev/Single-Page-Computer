@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIS Sports Analytics Engine</title>
+    <!-- js-yaml for YAML parsing and output -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <!-- PapaParse for CSV processing -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --bg-card: #151515;
+            --bg-sidebar: #0f0f0f;
+            --border-primary: #333;
+            --border-accent: #404040;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-primary: #22c55e;
+            --accent-secondary: #16a34a;
+            --accent-tertiary: #15803d;
+            --error-bg: #1f1315;
+            --error-border: #7f1d1d;
+            --error-text: #fca5a5;
+            --success-bg: #0f1a14;
+            --success-border: var(--accent-tertiary);
+            --success-text: var(--accent-primary);
+            --info-bg: #0f1419;
+            --info-border: #1e40af;
+            --info-text: #60a5fa;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --sidebar-width: 300px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-primary);
+            padding: 2rem 1.5rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 101;
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar h2 {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            color: var(--accent-primary);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), #34d399);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sidebar-nav button {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .sidebar-nav button:hover {
+            color: var(--accent-primary);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .sidebar-nav button.active {
+            color: var(--accent-primary);
+            background: rgba(34, 197, 94, 0.15);
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .sidebar-actions button {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-actions button:hover {
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-tertiary));
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-actions button.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .sidebar-actions button.secondary:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-accent);
+        }
+
+        .session-info {
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .session-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .session-info p {
+            margin: 0;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        .disclaimer {
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.8125rem;
+            color: var(--info-text);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), #34d399);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            letter-spacing: -0.025em;
+        }
+
+        .section {
+            margin: 2rem 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+            scroll-margin-top: 2rem;
+        }
+
+        .section:hover {
+            border-color: var(--border-accent);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .section h3 {
+            color: var(--accent-primary);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section h3::before {
+            content: '';
+            width: 4px;
+            height: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        .csv-section {
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            color: var(--info-text);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .csv-section h3 {
+            color: var(--info-text);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .csv-section h3::before {
+            content: '';
+            width: 4px;
+            height: 1.5rem;
+            background: linear-gradient(135deg, var(--info-text), #3b82f6);
+            border-radius: 2px;
+        }
+
+        .csv-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .csv-controls button {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.75rem 1rem;
+            font-size: 0.8125rem;
+            background: linear-gradient(135deg, var(--info-text), #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .csv-controls button:hover {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .csv-controls button.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .csv-controls button.secondary:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-accent);
+        }
+
+        .input-editor {
+            width: 100%;
+            height: 300px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .input-editor:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            background: var(--bg-primary);
+        }
+
+        .input-editor::placeholder {
+            color: var(--text-muted);
+        }
+
+        .controls {
+            text-align: center;
+            margin: 3rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            border: none;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-tertiary));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-md);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #374151, #4b5563);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:disabled:hover {
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .output {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .output::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .output::-webkit-scrollbar-thumb {
+            background: var(--border-accent);
+            border-radius: 4px;
+        }
+
+        .output::-webkit-scrollbar-thumb:hover {
+            background: #525252;
+        }
+
+        .success {
+            color: var(--success-text);
+            background: var(--success-bg);
+            border-color: var(--success-border);
+            box-shadow: 0 0 0 1px var(--success-border);
+        }
+
+        .error {
+            color: var(--error-text);
+            background: var(--error-bg);
+            border-color: var(--error-border);
+            box-shadow: 0 0 0 1px var(--error-border);
+        }
+
+        .parse-error {
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            color: var(--error-text);
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        #rules-section {
+            border-left: 4px solid #3b82f6;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #rules-section .section h3 {
+            color: #3b82f6;
+        }
+
+        #rules-section .section h3::before {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        #rules-section button {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            margin: 0 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.8125rem;
+        }
+
+        #rules-section button:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        }
+
+        #rules-section button:last-child {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        #rules-section button:last-child:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+        }
+
+        /* Visualization section styles */
+        .visualization-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .visualization-section h3 {
+            color: var(--accent-primary);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .summary-card h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .summary-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin: 0;
+        }
+
+        .summary-card .change {
+            font-size: 0.875rem;
+            margin: 0.25rem 0 0 0;
+        }
+
+        .positive {
+            color: var(--accent-primary);
+        }
+
+        .negative {
+            color: var(--error-text);
+        }
+
+        /* Mobile and responsive design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 100;
+                box-shadow: var(--shadow-xl);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                padding: 1rem;
+                width: 100%;
+            }
+
+            .app-layout {
+                flex-direction: column;
+            }
+
+            .section {
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+
+            .csv-section {
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }
+
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+                margin-top: 3rem;
+            }
+
+            .controls {
+                margin: 2rem 0;
+            }
+
+            button {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.8125rem;
+            }
+
+            .input-editor {
+                height: 250px;
+                font-size: 0.8125rem;
+            }
+
+            .csv-controls {
+                flex-direction: column;
+            }
+
+            .csv-controls button {
+                width: 100%;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls button {
+                width: 100%;
+                margin: 0.25rem 0;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* Enhanced focus states for accessibility */
+        button:focus-visible,
+        .input-editor:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        /* Loading state for buttons */
+        button.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        button.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Subtle grid pattern background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: radial-gradient(circle at 1px 1px, var(--text-primary) 1px, transparent 0);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+  <!-- Mobile toggle -->
+  <button class="sidebar-toggle" onclick="toggleSidebar()">⚽ Menu</button>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <h2>⚽ AXIS Sports Analytics</h2>
+
+      <div class="disclaimer">
+        <strong>Educational Tool</strong><br>
+        This analytics engine is designed for educational purposes, fantasy sports strategy, and general sports analysis. Predictive models have limitations and should not be considered guaranteed outcomes.
+      </div>
+
+      <div class="session-info">
+        <h4>Analytics Session</h4>
+        <p id="session-status">Sports Analytics - Ready</p>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Navigation</h3>
+        <div class="sidebar-nav">
+          <button data-section="csv-section" onclick="scrollToSection('csv-section')">CSV Import/Export</button>
+          <button data-section="input-data" onclick="scrollToSection('input-data')">Team & Player Data</button>
+          <button data-section="rules-section" onclick="scrollToSection('rules-section')">Poisson Rules</button>
+          <button data-section="results-section" onclick="scrollToSection('results-section')">Predictions</button>
+          <button data-section="visualization-section" onclick="scrollToSection('visualization-section')">Visualizations</button>
+          <button data-section="debug-section" onclick="scrollToSection('debug-section')">Debug Log</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Actions</h3>
+        <div class="sidebar-actions">
+          <button onclick="runSportsAnalysis()">Run Analysis</button>
+          <button onclick="runDebugTest()">Debug Mode</button>
+          <button class="secondary" onclick="resetToDefaults()">Sample Data</button>
+          <button class="secondary" onclick="clearOutput()">Clear Output</button>
+          <button class="secondary" onclick="toggleRulesEditor()">⚙️ Edit Rules</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <div class="container">
+        <h1>AXIS Sports Analytics Engine</h1>
+
+        <!-- CSV Import/Export Section -->
+        <section id="csv-section" class="csv-section">
+          <h3>CSV Import/Export</h3>
+          <div class="csv-controls">
+            <input type="file" id="csv-input" accept=".csv" style="display: none;" />
+            <button onclick="document.getElementById('csv-input').click()">📁 Import Team/Player CSV</button>
+            <button onclick="generateSampleCSV()">📋 Generate Sample CSV</button>
+            <button onclick="exportResultsToCSV()" class="secondary">💾 Export Predictions to CSV</button>
+          </div>
+          <div id="csv-status"></div>
+        </section>
+
+        <!-- Input Data Editor -->
+        <section id="input-data" class="section">
+          <h3>Team & Player Data (YAML or JSON)</h3>
+          <textarea id="input-editor" class="input-editor" placeholder="Paste your team and player data here (YAML or JSON format)..."></textarea>
+          <div id="parse-error" class="parse-error" style="display: none;"></div>
+        </section>
+
+        <!-- Rules Editor (hidden by default) -->
+        <section id="rules-section" class="section" style="display: none;">
+          <h3>Poisson Analytics Rules (YAML)</h3>
+          <textarea id="rules-editor" class="input-editor" placeholder="Edit Poisson distribution rules here..."></textarea>
+          <div style="margin-top: 10px; text-align: right;">
+            <button onclick="saveRules()">Save Rules</button>
+            <button onclick="cancelRulesEdit()">Cancel</button>
+          </div>
+        </section>
+
+        <!-- Engine Output -->
+        <section id="results-section" class="section">
+          <h3>Sports Predictions (YAML)</h3>
+          <div id="results" class="output">Click "Run Analysis" to start Poisson modeling...</div>
+        </section>
+        
+        <!-- Visualization Section -->
+        <section id="visualization-section" class="visualization-section">
+          <h3>Sports Visualizations</h3>
+          <div id="summary-cards" class="summary-cards">
+            <!-- Summary cards will be generated here -->
+          </div>
+          <div id="chart-grid" class="chart-grid">
+            <!-- Charts will be generated here -->
+          </div>
+        </section>
+        
+        <!-- Debug Log -->
+        <section id="debug-section" class="section">
+          <h3>Execution Log</h3>
+          <div id="debug" class="output">Debug output will appear here...</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // AXIS Sports Analytics Engine with Poisson Distribution Modeling
+    class AxisSportsEngine {
+        constructor() {
+            this.auditTrail = [];
+            this.conflictLog = [];
+            this.currentIteration = 0;
+            this.debugMode = false;
+        }
+
+        setDebugMode(enabled) {
+            this.debugMode = enabled;
+        }
+
+        debug(message) {
+            if (this.debugMode) {
+                console.log(`[AXIS SPORTS DEBUG] ${message}`);
+                this.log(`DEBUG: ${message}`, 'debug');
+            }
+        }
+
+        // Factorial function for Poisson calculations
+        factorial(n) {
+            if (n <= 1) return 1;
+            return n * this.factorial(n - 1);
+        }
+
+        // Poisson probability mass function
+        poissonPMF(lambda, k) {
+            if (lambda <= 0 || k < 0) return 0;
+            return (Math.pow(lambda, k) * Math.exp(-lambda)) / this.factorial(k);
+        }
+
+        // Generate Poisson distribution array
+        generatePoissonDistribution(lambda, maxK = 10) {
+            const distribution = [];
+            for (let k = 0; k <= maxK; k++) {
+                distribution.push({
+                    value: k,
+                    probability: this.poissonPMF(lambda, k)
+                });
+            }
+            return distribution;
+        }
+
+        apply(inputData, rulesConfig) {
+            this.auditTrail = [];
+            this.conflictLog = [];
+            this.currentIteration = 0;
+
+            this.debug('Starting AXIS sports analytics engine...');
+            this.debug(`Input data: ${JSON.stringify(inputData, null, 2)}`);
+            this.debug(`Rules config: ${JSON.stringify(rulesConfig, null, 2)}`);
+
+            let currentState = JSON.parse(JSON.stringify(inputData));
+            let iteration = 0;
+            const maxIterations = rulesConfig.max_iterations || 10;
+
+            const sortedRules = [...(rulesConfig.rules || [])].sort(
+                (a, b) => (a.priority || 999) - (b.priority || 999)
+            );
+
+            this.debug(`Sorted rules: ${sortedRules.map(r => r.name).join(', ')}`);
+
+            while (iteration < maxIterations) {
+                iteration++;
+                this.currentIteration = iteration;
+                this.debug(`--- ITERATION ${iteration} ---`);
+
+                const before = JSON.stringify(currentState);
+                const iterationChanges = new Map();
+
+                for (let rule of sortedRules) {
+                    const prevState = JSON.stringify(currentState);
+                    this.debug(`Evaluating rule: ${rule.name}`);
+                    this.debug(`Condition: ${rule.if}`);
+
+                    const conditionResult = this.evaluateCondition(rule.if, currentState);
+                    this.debug(`Condition result: ${conditionResult}`);
+
+                    if (conditionResult) {
+                        this.log(`Applied: ${rule.name}`);
+                        this.debug(`Applying transformations: ${JSON.stringify(rule.then)}`);
+
+                        if (rule.then) {
+                            const result = this.applyTransformationsWithTracking(
+                                currentState,
+                                rule.then,
+                                rule.name,
+                                iterationChanges
+                            );
+
+                            currentState = result.newState;
+                            if (prevState !== JSON.stringify(currentState)) {
+                                this.debug(`State changed after ${rule.name}`);
+                            } else {
+                                this.debug(`No state change after ${rule.name}`);
+                            }
+                        }
+                    } else {
+                        this.debug(`Skipping rule: ${rule.name} (condition false)`);
+                    }
+                }
+
+                const after = JSON.stringify(currentState);
+                if (before === after) break; // converged
+            }
+
+            this.debug(`Engine finished after ${iteration} iterations`);
+
+            return {
+                input: inputData,
+                output: currentState,
+                iterations: iteration,
+                audit: this.auditTrail,
+                conflicts: this.conflictLog,
+                rulesApplied: this.getRulesApplied()
+            };
+        }
+
+        getNestedPath(obj, path) {
+            const keys = path.split('.');
+            let cur = obj;
+            for (const k of keys) {
+                if (cur == null || typeof cur !== 'object') return undefined;
+                cur = cur[k];
+            }
+            return cur;
+        }
+
+        typesCompatible(a, b) {
+            const ta = Array.isArray(a) ? 'array' : typeof a;
+            const tb = Array.isArray(b) ? 'array' : typeof b;
+            return ta === tb || a === undefined;
+        }
+
+        applyTransformationsWithTracking(state, transformations, ruleName, iterationChanges) {
+            const newState = JSON.parse(JSON.stringify(state));
+
+            for (const [path, value] of Object.entries(transformations)) {
+                this.debug(`Setting path: ${path} = ${JSON.stringify(value)}`);
+                
+                const resolvedValue = this.resolveValue(value, newState);
+                this.debug(`Resolved value: ${JSON.stringify(resolvedValue)}`);
+
+                const prevVal = this.getNestedPath(newState, path);
+                if (!this.typesCompatible(prevVal, resolvedValue)) {
+                    this.debug(`TYPE MISMATCH at ${path}: had ${Array.isArray(prevVal) ? 'array' : typeof prevVal}, got ${Array.isArray(resolvedValue) ? 'array' : typeof resolvedValue}. Skipping.`);
+                    continue;
+                }
+
+                if (iterationChanges.has(path)) {
+                    const previousRule = iterationChanges.get(path);
+                    this.conflictLog.push({
+                        field: path,
+                        previousRule,
+                        currentRule: ruleName,
+                        iteration: this.currentIteration
+                    });
+                    this.debug(`CONFLICT: ${path} set by both ${previousRule} and ${ruleName}`);
+                }
+
+                iterationChanges.set(path, ruleName);
+                
+                try {
+                    this.setNestedPath(newState, path, resolvedValue);
+                    this.debug(`Successfully set ${path}`);
+                } catch (error) {
+                    this.debug(`ERROR setting ${path}: ${error.message}`);
+                    console.error('Error setting path:', error);
+                }
+            }
+
+            return { newState };
+        }
+
+        evaluateCondition(condition, context) {
+            if (!condition) return true;
+            try {
+                const safeContext = this.createSafeContext(context);
+                this.debug(`Safe context keys: ${Object.keys(safeContext).join(', ')}`);
+                
+                const func = new Function(...Object.keys(safeContext), `return ${condition}`);
+                const result = Boolean(func(...Object.values(safeContext)));
+                this.debug(`Condition "${condition}" evaluated to: ${result}`);
+                return result;
+            } catch (error) {
+                this.debug(`ERROR evaluating condition "${condition}": ${error.message}`);
+                return false;
+            }
+        }
+
+        resolveValue(template, context) {
+            if (typeof template !== 'string') return template;
+
+            const m = template.match(/^\s*\{\{([\s\S]*?)\}\}\s*$/);
+            if (!m) return template;
+
+            const expression = m[1].trim();
+
+            if (expression === 'now()') return new Date().toISOString();
+            if (expression === 'today()') return new Date().toISOString().split('T')[0];
+
+            try {
+                const safeContext = this.createSafeContext(context);
+                // Add sports-specific functions
+                safeContext.factorial = this.factorial.bind(this);
+                safeContext.poissonPMF = this.poissonPMF.bind(this);
+                safeContext.poissonDist = this.generatePoissonDistribution.bind(this);
+                
+                const func = new Function(...Object.keys(safeContext), `return (${expression})`);
+                const result = func(...Object.values(safeContext));
+                this.debug(`Expression "${expression}" evaluated to: ${JSON.stringify(result)}`);
+                return result;
+            } catch (error) {
+                this.debug(`ERROR resolving template "${template}": ${error.message}`);
+                throw new Error(`Template failed: ${template} → ${error.message}`);
+            }
+        }
+
+        createSafeContext(context) {
+            const flattened = this.flattenObject(context);
+            return {
+                ...flattened,
+                ...context,
+                Math,
+                Date,
+                parseInt,
+                parseFloat,
+                String,
+                Number,
+                Boolean,
+                Array,
+                JSON
+            };
+        }
+
+        flattenObject(obj, prefix = '') {
+            const flattened = {};
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const newKey = prefix ? `${prefix}.${key}` : key;
+                    if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                        Object.assign(flattened, this.flattenObject(obj[key], newKey));
+                    } else {
+                        flattened[newKey.replace(/\./g, '_')] = obj[key];
+                    }
+                }
+            }
+            return flattened;
+        }
+
+        setNestedPath(obj, path, value) {
+            const keys = path.split('.');
+            let current = obj;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                    current[keys[i]] = {};
+                }
+                current = current[keys[i]];
+            }
+            current[keys[keys.length - 1]] = value;
+        }
+
+        log(message, level = 'info') {
+            this.auditTrail.push({
+                timestamp: new Date().toISOString(),
+                level,
+                message
+            });
+        }
+
+        getRulesApplied() {
+            return this.auditTrail
+                .filter(e => e.message.startsWith('Applied:'))
+                .map(e => e.message.replace('Applied: ', ''));
+        }
+    }
+
+    // Default sports data with Premier League teams
+    const defaultSportsData = {
+        league: {
+            name: "Premier League 2023-24",
+            season: "2023-24",
+            total_matchdays: 38,
+            analysis_date: new Date().toISOString().split('T')[0]
+        },
+        teams: [
+            {
+                name: "Manchester City",
+                matches_played: 20,
+                goals_scored: 58,
+                goals_conceded: 25,
+                wins: 15,
+                draws: 3,
+                losses: 2,
+                home_goals_scored: 32,
+                home_goals_conceded: 12,
+                away_goals_scored: 26,
+                away_goals_conceded: 13,
+                recent_form: [3, 1, 3, 0, 3], // last 5 matches goals scored
+                attack_rating: 85,
+                defense_rating: 88
+            },
+            {
+                name: "Liverpool",
+                matches_played: 20,
+                goals_scored: 52,
+                goals_conceded: 28,
+                wins: 13,
+                draws: 5,
+                losses: 2,
+                home_goals_scored: 28,
+                home_goals_conceded: 14,
+                away_goals_scored: 24,
+                away_goals_conceded: 14,
+                recent_form: [2, 3, 1, 2, 4],
+                attack_rating: 82,
+                defense_rating: 79
+            },
+            {
+                name: "Arsenal",
+                matches_played: 20,
+                goals_scored: 49,
+                goals_conceded: 24,
+                wins: 14,
+                draws: 3,
+                losses: 3,
+                home_goals_scored: 27,
+                home_goals_conceded: 11,
+                away_goals_scored: 22,
+                away_goals_conceded: 13,
+                recent_form: [1, 2, 3, 1, 2],
+                attack_rating: 80,
+                defense_rating: 84
+            },
+            {
+                name: "Tottenham",
+                matches_played: 20,
+                goals_scored: 45,
+                goals_conceded: 35,
+                wins: 11,
+                draws: 3,
+                losses: 6,
+                home_goals_scored: 25,
+                home_goals_conceded: 16,
+                away_goals_scored: 20,
+                away_goals_conceded: 19,
+                recent_form: [2, 1, 0, 3, 2],
+                attack_rating: 78,
+                defense_rating: 72
+            }
+        ],
+        players: [
+            {
+                name: "Erling Haaland",
+                team: "Manchester City",
+                position: "Forward",
+                goals: 18,
+                assists: 5,
+                minutes_played: 1650,
+                shots_per_game: 4.2,
+                expected_goals_per_game: 0.95,
+                recent_goals: [1, 0, 2, 1, 1] // last 5 matches
+            },
+            {
+                name: "Mohamed Salah",
+                team: "Liverpool", 
+                position: "Forward",
+                goals: 15,
+                assists: 8,
+                minutes_played: 1720,
+                shots_per_game: 3.8,
+                expected_goals_per_game: 0.82,
+                recent_goals: [0, 1, 0, 1, 2]
+            },
+            {
+                name: "Bukayo Saka",
+                team: "Arsenal",
+                position: "Winger",
+                goals: 8,
+                assists: 7,
+                minutes_played: 1680,
+                shots_per_game: 2.9,
+                expected_goals_per_game: 0.45,
+                recent_goals: [0, 1, 1, 0, 0]
+            }
+        ]
+    };
+
+    // Sports Analytics Rules with Poisson Distribution
+    let sportsRules = {
+        max_iterations: 15,
+        rules: [
+            {
+                name: "calculate_team_lambda",
+                priority: 1,
+                if: "teams && teams.length > 0",
+                then: {
+                    "teams": "{{teams.map(t => ({...t, lambda_goals_scored: t.matches_played > 0 ? Math.round((t.goals_scored / t.matches_played) * 100) / 100 : 0, lambda_goals_conceded: t.matches_played > 0 ? Math.round((t.goals_conceded / t.matches_played) * 100) / 100 : 0}))}}"
+                }
+            },
+            {
+                name: "calculate_home_away_lambda",
+                priority: 2,
+                if: "teams && teams.length > 0",
+                then: {
+                    "teams": "{{teams.map(t => ({...t, home_lambda_scored: t.matches_played > 0 ? Math.round((t.home_goals_scored / (t.matches_played/2)) * 100) / 100 : 0, home_lambda_conceded: t.matches_played > 0 ? Math.round((t.home_goals_conceded / (t.matches_played/2)) * 100) / 100 : 0, away_lambda_scored: t.matches_played > 0 ? Math.round((t.away_goals_scored / (t.matches_played/2)) * 100) / 100 : 0, away_lambda_conceded: t.matches_played > 0 ? Math.round((t.away_goals_conceded / (t.matches_played/2)) * 100) / 100 : 0}))}}"
+                }
+            },
+            {
+                name: "generate_poisson_distributions",
+                priority: 3,
+                if: "teams && teams.length > 0",
+                then: {
+                    "teams": "{{teams.map(t => ({...t, goals_distribution: poissonDist(t.lambda_goals_scored, 8), conceded_distribution: poissonDist(t.lambda_goals_conceded, 8)}))}}"
+                }
+            },
+            {
+                name: "calculate_form_factor",
+                priority: 4,
+                if: "teams && teams.length > 0",
+                then: {
+                    "teams": "{{teams.map(t => ({...t, recent_form_avg: t.recent_form && t.recent_form.length > 0 ? Math.round((t.recent_form.reduce((sum, goals) => sum + goals, 0) / t.recent_form.length) * 100) / 100 : 0, form_weighted_lambda: t.lambda_goals_scored && t.recent_form ? Math.round(((t.lambda_goals_scored * 0.7) + (t.recent_form.reduce((sum, goals) => sum + goals, 0) / t.recent_form.length * 0.3)) * 100) / 100 : t.lambda_goals_scored}))}}"
+                }
+            },
+            {
+                name: "assign_strength_categories",
+                priority: 5,
+                if: "teams && teams.length > 0",
+                then: {
+                    "teams": "{{teams.map(t => ({...t, attack_strength: t.lambda_goals_scored > 2.5 ? 'strong' : t.lambda_goals_scored > 1.8 ? 'average' : 'weak', defense_strength: t.lambda_goals_conceded < 1.0 ? 'strong' : t.lambda_goals_conceded < 1.5 ? 'average' : 'weak'}))}}"
+                }
+            },
+            {
+                name: "calculate_player_lambda",
+                priority: 6,
+                if: "players && players.length > 0",
+                then: {
+                    "players": "{{players.map(p => ({...p, lambda_goals: p.minutes_played > 0 ? Math.round((p.goals / (p.minutes_played / 90)) * 100) / 100 : 0, lambda_assists: p.minutes_played > 0 ? Math.round((p.assists / (p.minutes_played / 90)) * 100) / 100 : 0}))}}"
+                }
+            },
+            {
+                name: "generate_player_distributions",
+                priority: 7,
+                if: "players && players.length > 0",
+                then: {
+                    "players": "{{players.map(p => ({...p, goal_probability_distribution: poissonDist(p.lambda_goals, 5), assist_probability_distribution: poissonDist(p.lambda_assists, 4)}))}}"
+                }
+            },
+            {
+                name: "calculate_fantasy_projections",
+                priority: 8,
+                if: "players && players.length > 0",
+                then: {
+                    "players": "{{players.map(p => ({...p, expected_fantasy_points: Math.round((p.lambda_goals * 6 + p.lambda_assists * 3 + 2) * 100) / 100, fantasy_point_variance: Math.round((p.lambda_goals * 36 + p.lambda_assists * 9) * 100) / 100}))}}"
+                }
+            },
+            {
+                name: "calculate_over_under_probabilities",
+                priority: 9,
+                if: "teams && teams.length > 0",
+                then: {
+                    "teams": "{{teams.map(t => { const over15 = 1 - (poissonPMF(t.lambda_goals_scored, 0) + poissonPMF(t.lambda_goals_scored, 1)); const over25 = 1 - (poissonPMF(t.lambda_goals_scored, 0) + poissonPMF(t.lambda_goals_scored, 1) + poissonPMF(t.lambda_goals_scored, 2)); return {...t, over_1_5_prob: Math.round(over15 * 100) / 100, over_2_5_prob: Math.round(over25 * 100) / 100}; })}}"
+                }
+            },
+            {
+                name: "calculate_league_summary",
+                priority: 10,
+                if: "teams && teams.length > 0",
+                then: {
+                    "league.total_teams": "{{teams.length}}",
+                    "league.avg_goals_per_game": "{{Math.round(teams.reduce((sum, t) => sum + t.lambda_goals_scored, 0) / teams.length * 100) / 100}}",
+                    "league.highest_scoring_team": "{{teams.reduce((max, t) => t.lambda_goals_scored > max.lambda_goals_scored ? t : max, teams[0]).name}}",
+                    "league.best_defense_team": "{{teams.reduce((min, t) => t.lambda_goals_conceded < min.lambda_goals_conceded ? t : min, teams[0]).name}}",
+                    "league.most_consistent_attack": "{{teams.reduce((min, t) => { const variance = t.recent_form ? t.recent_form.reduce((sum, g) => sum + Math.pow(g - t.recent_form_avg, 2), 0) / t.recent_form.length : 999; const minVariance = min.recent_form ? min.recent_form.reduce((sum, g) => sum + Math.pow(g - min.recent_form_avg, 2), 0) / min.recent_form.length : 999; return variance < minVariance ? t : min; }, teams[0]).name}}"
+                }
+            }
+        ]
+    };
+
+    // CSV Integration Functions
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('csv-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const statusDiv = document.getElementById('csv-status');
+            statusDiv.innerHTML = '<div style="color: var(--info-text)">Processing sports CSV file...</div>';
+            
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        statusDiv.innerHTML = `<div style="color: var(--error-text)">Error parsing CSV: ${results.errors[0].message}</div>`;
+                        return;
+                    }
+                    
+                    const parsedData = results.data;
+                    statusDiv.innerHTML = `<div style="color: var(--success-text)">Successfully parsed ${parsedData.length} rows</div>`;
+                    
+                    // Auto-detect if this is team or player data
+                    const firstRow = parsedData[0];
+                    const isTeamData = firstRow.hasOwnProperty('goals_scored') || firstRow.hasOwnProperty('goals_conceded');
+                    const isPlayerData = firstRow.hasOwnProperty('position') || firstRow.hasOwnProperty('team');
+                    
+                    let sportsInput;
+                    if (isTeamData && !isPlayerData) {
+                        sportsInput = {
+                            league: {
+                                name: "Imported League",
+                                season: "2023-24",
+                                analysis_date: new Date().toISOString().split('T')[0]
+                            },
+                            teams: parsedData.map(row => {
+                                const team = {};
+                                for (const [key, value] of Object.entries(row)) {
+                                    const cleanKey = key.trim().toLowerCase().replace(/\s+/g, '_');
+                                    if (cleanKey && value !== null && value !== undefined && value !== '') {
+                                        team[cleanKey] = value;
+                                    }
+                                }
+                                
+                                // Parse recent_form if it's a string
+                                if (team.recent_form && typeof team.recent_form === 'string') {
+                                    try {
+                                        team.recent_form = JSON.parse(team.recent_form);
+                                    } catch {
+                                        team.recent_form = team.recent_form.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                                    }
+                                }
+                                
+                                return team;
+                            }),
+                            players: []
+                        };
+                    } else if (isPlayerData) {
+                        sportsInput = {
+                            league: {
+                                name: "Imported League",
+                                season: "2023-24", 
+                                analysis_date: new Date().toISOString().split('T')[0]
+                            },
+                            teams: [],
+                            players: parsedData.map(row => {
+                                const player = {};
+                                for (const [key, value] of Object.entries(row)) {
+                                    const cleanKey = key.trim().toLowerCase().replace(/\s+/g, '_');
+                                    if (cleanKey && value !== null && value !== undefined && value !== '') {
+                                        player[cleanKey] = value;
+                                    }
+                                }
+                                
+                                // Parse recent_goals if it's a string
+                                if (player.recent_goals && typeof player.recent_goals === 'string') {
+                                    try {
+                                        player.recent_goals = JSON.parse(player.recent_goals);
+                                    } catch {
+                                        player.recent_goals = player.recent_goals.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                                    }
+                                }
+                                
+                                return player;
+                            })
+                        };
+                    } else {
+                        // Mixed or unknown format
+                        sportsInput = {
+                            league: {
+                                name: "Imported Data",
+                                analysis_date: new Date().toISOString().split('T')[0]
+                            },
+                            data: parsedData
+                        };
+                    }
+                    
+                    // Update the input editor
+                    try {
+                        document.getElementById('input-editor').value = jsyaml.dump(sportsInput, {indent: 2});
+                        statusDiv.innerHTML += `<div style="color: var(--success-text); margin-top: 10px;">Data converted to sports YAML format</div>`;
+                    } catch (error) {
+                        document.getElementById('input-editor').value = JSON.stringify(sportsInput, null, 2);
+                        statusDiv.innerHTML += `<div style="color: var(--success-text); margin-top: 10px;">Data converted to sports JSON format</div>`;
+                    }
+                    
+                    // Auto-run the engine
+                    setTimeout(runSportsAnalysis, 500);
+                },
+                error: function(error) {
+                    document.getElementById('csv-status').innerHTML = `<div style="color: var(--error-text)">Error: ${error.message}</div>`;
+                }
+            });
+        });
+    });
+
+    function generateSampleCSV() {
+        const sampleTeamCSV = `name,matches_played,goals_scored,goals_conceded,wins,draws,losses,home_goals_scored,home_goals_conceded,away_goals_scored,away_goals_conceded,recent_form,attack_rating,defense_rating
+Manchester City,20,58,25,15,3,2,32,12,26,13,"[3,1,3,0,3]",85,88
+Liverpool,20,52,28,13,5,2,28,14,24,14,"[2,3,1,2,4]",82,79
+Arsenal,20,49,24,14,3,3,27,11,22,13,"[1,2,3,1,2]",80,84
+Tottenham,20,45,35,11,3,6,25,16,20,19,"[2,1,0,3,2]",78,72
+Newcastle,20,42,28,11,5,4,23,12,19,16,"[1,1,2,0,1]",75,78
+Chelsea,20,38,32,9,7,4,21,15,17,17,"[0,2,1,1,3]",72,75`;
+        
+        const samplePlayerCSV = `name,team,position,goals,assists,minutes_played,shots_per_game,expected_goals_per_game,recent_goals
+Erling Haaland,Manchester City,Forward,18,5,1650,4.2,0.95,"[1,0,2,1,1]"
+Mohamed Salah,Liverpool,Forward,15,8,1720,3.8,0.82,"[0,1,0,1,2]"
+Bukayo Saka,Arsenal,Winger,8,7,1680,2.9,0.45,"[0,1,1,0,0]"
+Harry Kane,Tottenham,Forward,16,3,1800,4.5,0.88,"[1,2,0,1,1]"
+Kevin De Bruyne,Manchester City,Midfielder,6,12,1520,2.1,0.35,"[0,0,1,0,2]"`;
+        
+        // Create download links for both
+        const teamBlob = new Blob([sampleTeamCSV], { type: 'text/csv;charset=utf-8;' });
+        const playerBlob = new Blob([samplePlayerCSV], { type: 'text/csv;charset=utf-8;' });
+        
+        const teamLink = document.createElement('a');
+        teamLink.href = URL.createObjectURL(teamBlob);
+        teamLink.download = 'sample_teams.csv';
+        teamLink.style.display = 'none';
+        document.body.appendChild(teamLink);
+        teamLink.click();
+        document.body.removeChild(teamLink);
+        
+        setTimeout(() => {
+            const playerLink = document.createElement('a');
+            playerLink.href = URL.createObjectURL(playerBlob);
+            playerLink.download = 'sample_players.csv';
+            playerLink.style.display = 'none';
+            document.body.appendChild(playerLink);
+            playerLink.click();
+            document.body.removeChild(playerLink);
+        }, 500);
+        
+        document.getElementById('csv-status').innerHTML = '<div style="color: var(--success-text)">Sample team and player CSV files generated and downloaded</div>';
+    }
+
+    function exportResultsToCSV() {
+        const resultsDiv = document.getElementById('results');
+        if (!resultsDiv.textContent || resultsDiv.textContent.includes('Click "Run Analysis"')) {
+            document.getElementById('csv-status').innerHTML = '<div style="color: var(--error-text)">No results to export. Run analysis first.</div>';
+            return;
+        }
+        
+        try {
+            const yamlContent = resultsDiv.textContent;
+            let jsonData;
+            
+            if (yamlContent.includes('SPORTS ANALYSIS SUCCESSFUL') || yamlContent.includes('DEBUG TEST COMPLETE')) {
+                const yamlStart = yamlContent.indexOf('OUTPUT (YAML):') !== -1 ? 
+                    yamlContent.indexOf('OUTPUT (YAML):') + 'OUTPUT (YAML):'.length :
+                    yamlContent.indexOf('FINAL STATE (YAML):') + 'FINAL STATE (YAML):'.length;
+                const yamlEnd = yamlContent.indexOf('AUDIT SUMMARY:') !== -1 ?
+                    yamlContent.indexOf('AUDIT SUMMARY:') : yamlContent.length;
+                const yamlOutput = yamlContent.substring(yamlStart, yamlEnd).trim();
+                jsonData = jsyaml.load(yamlOutput);
+            } else {
+                jsonData = jsyaml.load(yamlContent);
+            }
+            
+            // Extract teams and players data for export
+            let dataToExport = [];
+            if (jsonData.teams && Array.isArray(jsonData.teams)) {
+                dataToExport = jsonData.teams;
+            } else if (jsonData.players && Array.isArray(jsonData.players)) {
+                dataToExport = jsonData.players;
+            } else if (Array.isArray(jsonData)) {
+                dataToExport = jsonData;
+            } else {
+                dataToExport = [jsonData];
+            }
+            
+            // Convert to CSV
+            const csv = Papa.unparse(dataToExport);
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'axis_sports_predictions.csv';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            document.getElementById('csv-status').innerHTML = '<div style="color: var(--success-text)">Sports predictions exported to CSV</div>';
+        } catch (error) {
+            document.getElementById('csv-status').innerHTML = `<div style="color: var(--error-text)">Error exporting CSV: ${error.message}</div>`;
+        }
+    }
+
+    // --- Persistence Helpers (localStorage) ---
+    function saveToLocalStorage() {
+        try {
+            const inputData = document.getElementById('input-editor').value;
+            const rulesData = document.getElementById('rules-editor')?.value || jsyaml.dump(sportsRules, {indent: 2});
+            
+            const session = {
+                inputData,
+                rulesData,
+                savedAt: new Date().toISOString(),
+                version: "2.0-sports"
+            };
+            localStorage.setItem('axis-sports-session', JSON.stringify(session));
+            updateSessionStatus('Session saved');
+        } catch (err) {
+            console.error("Failed to save session:", err);
+        }
+    }
+
+    function loadFromLocalStorage() {
+        try {
+            const raw = localStorage.getItem('axis-sports-session');
+            if (!raw) return false;
+            
+            const session = JSON.parse(raw);
+            
+            if (session.inputData) {
+                document.getElementById('input-editor').value = session.inputData;
+            }
+            if (session.rulesData) {
+                try {
+                    sportsRules = jsyaml.load(session.rulesData);
+                } catch {
+                    sportsRules = JSON.parse(session.rulesData);
+                }
+                const rulesEditor = document.getElementById('rules-editor');
+                if (rulesEditor) rulesEditor.value = session.rulesData;
+            }
+            
+            updateSessionStatus('Session loaded');
+            return true;
+        } catch (err) {
+            console.error("Failed to load session:", err);
+            return false;
+        }
+    }
+
+    // Sidebar functionality
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    }
+
+    function scrollToSection(sectionId) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Update active nav item
+            document.querySelectorAll('.sidebar-nav button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionId}"]`)?.classList.add('active');
+            
+            // Close sidebar on mobile after navigation
+            if (window.innerWidth <= 1024) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
+        }
+    }
+
+    function updateSessionStatus(message) {
+        const statusEl = document.getElementById('session-status');
+        if (statusEl) {
+            statusEl.textContent = message;
+            setTimeout(() => {
+                statusEl.textContent = 'Sports Analytics - Ready';
+            }, 2000);
+        }
+    }
+
+    // Enhanced navigation tracking
+    function updateActiveSection() {
+        const sections = ['csv-section', 'input-data', 'rules-section', 'results-section', 'visualization-section', 'debug-section'];
+        const navButtons = document.querySelectorAll('.sidebar-nav button');
+        
+        let activeSection = null;
+        const scrollPosition = window.scrollY + 100;
+        
+        sections.forEach(sectionId => {
+            const element = document.getElementById(sectionId);
+            if (element && element.offsetTop <= scrollPosition) {
+                activeSection = sectionId;
+            }
+        });
+        
+        navButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.section === activeSection) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    // Add scroll listener for active section tracking
+    window.addEventListener('scroll', updateActiveSection);
+    window.addEventListener('resize', updateActiveSection);
+
+    // Helper functions
+    function parseInput() {
+        const inputText = document.getElementById('input-editor').value;
+        const errorDiv = document.getElementById('parse-error');
+        
+        try {
+            errorDiv.style.display = 'none';
+            // Try YAML first, fall back to JSON
+            let parsedInput;
+            try {
+                parsedInput = jsyaml.load(inputText);
+            } catch {
+                parsedInput = JSON.parse(inputText);
+            }
+            return parsedInput;
+        } catch (error) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = `Parse Error: ${error.message}`;
+            return null;
+        }
+    }
+
+    function runSportsAnalysis() {
+        const parsedInput = parseInput();
+        if (!parsedInput) return;
+        
+        const engine = new AxisSportsEngine();
+        const resultsDiv = document.getElementById('results');
+        const debugDiv = document.getElementById('debug');
+        
+        try {
+            const result = engine.apply(parsedInput, sportsRules);
+            const yamlOutput = jsyaml.dump(result.output, {indent: 2});
+            
+            resultsDiv.className = 'output success';
+            resultsDiv.textContent = 
+                `SPORTS ANALYSIS SUCCESSFUL\n\n` +
+                `OUTPUT (YAML):\n${yamlOutput}\n` +
+                `AUDIT SUMMARY:\n${jsyaml.dump({
+                    iterations: result.iterations,
+                    rulesApplied: result.rulesApplied,
+                    conflicts: result.conflicts.length,
+                    conflictDetails: result.conflicts
+                }, {indent: 2})}`;
+            
+            debugDiv.textContent = 
+                `Audit Trail (${result.audit.length} events):\n${result.audit.map(a => `[${a.level.toUpperCase()}] ${a.message}`).join('\n')}`;
+            
+            // Create visualizations
+            createSportsVisualizations(result);
+            
+            saveToLocalStorage();
+                
+        } catch (error) {
+            resultsDiv.className = 'output error';
+            resultsDiv.textContent = 
+                `SPORTS ANALYSIS FAILED\n\n` +
+                `Error: ${error.message}\n\n` +
+                `Stack: ${error.stack}`;
+        }
+    }
+
+    function runDebugTest() {
+        const parsedInput = parseInput();
+        if (!parsedInput) return;
+        
+        const engine = new AxisSportsEngine();
+        engine.setDebugMode(true);
+        const resultsDiv = document.getElementById('results');
+        const debugDiv = document.getElementById('debug');
+        
+        try {
+            const result = engine.apply(parsedInput, sportsRules);
+            const yamlOutput = jsyaml.dump(result.output, {indent: 2});
+            
+            resultsDiv.className = 'output success';
+            resultsDiv.textContent = 
+                `DEBUG TEST COMPLETE\n\n` +
+                `FINAL STATE (YAML):\n${yamlOutput}`;
+            
+            debugDiv.textContent = 
+                `Full Debug Log (${result.audit.length} events):\n${result.audit.map(a => `[${a.timestamp}] [${a.level.toUpperCase()}] ${a.message}`).join('\n')}`;
+            
+            // Create visualizations
+            createSportsVisualizations(result);
+            
+            saveToLocalStorage();
+                
+        } catch (error) {
+            resultsDiv.className = 'output error';
+            resultsDiv.textContent = 
+                `DEBUG TEST FAILED\n\n` +
+                `Error: ${error.message}\n\n` +
+                `Stack: ${error.stack}`;
+        }
+    }
+
+    function resetToDefaults() {
+        const inputEditor = document.getElementById('input-editor');
+        try {
+            inputEditor.value = jsyaml.dump(defaultSportsData, {indent: 2});
+        } catch {
+            inputEditor.value = JSON.stringify(defaultSportsData, null, 2);
+        }
+        
+        // Reset rules to original sports rules
+        sportsRules = {
+            max_iterations: 15,
+            rules: [
+                {
+                    name: "calculate_team_lambda",
+                    priority: 1,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "teams": "{{teams.map(t => ({...t, lambda_goals_scored: t.matches_played > 0 ? Math.round((t.goals_scored / t.matches_played) * 100) / 100 : 0, lambda_goals_conceded: t.matches_played > 0 ? Math.round((t.goals_conceded / t.matches_played) * 100) / 100 : 0}))}}"
+                    }
+                },
+                {
+                    name: "calculate_home_away_lambda",
+                    priority: 2,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "teams": "{{teams.map(t => ({...t, home_lambda_scored: t.matches_played > 0 ? Math.round((t.home_goals_scored / (t.matches_played/2)) * 100) / 100 : 0, home_lambda_conceded: t.matches_played > 0 ? Math.round((t.home_goals_conceded / (t.matches_played/2)) * 100) / 100 : 0, away_lambda_scored: t.matches_played > 0 ? Math.round((t.away_goals_scored / (t.matches_played/2)) * 100) / 100 : 0, away_lambda_conceded: t.matches_played > 0 ? Math.round((t.away_goals_conceded / (t.matches_played/2)) * 100) / 100 : 0}))}}"
+                    }
+                },
+                {
+                    name: "generate_poisson_distributions",
+                    priority: 3,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "teams": "{{teams.map(t => ({...t, goals_distribution: poissonDist(t.lambda_goals_scored, 8), conceded_distribution: poissonDist(t.lambda_goals_conceded, 8)}))}}"
+                    }
+                },
+                {
+                    name: "calculate_form_factor",
+                    priority: 4,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "teams": "{{teams.map(t => ({...t, recent_form_avg: t.recent_form && t.recent_form.length > 0 ? Math.round((t.recent_form.reduce((sum, goals) => sum + goals, 0) / t.recent_form.length) * 100) / 100 : 0, form_weighted_lambda: t.lambda_goals_scored && t.recent_form ? Math.round(((t.lambda_goals_scored * 0.7) + (t.recent_form.reduce((sum, goals) => sum + goals, 0) / t.recent_form.length * 0.3)) * 100) / 100 : t.lambda_goals_scored}))}}"
+                    }
+                },
+                {
+                    name: "assign_strength_categories",
+                    priority: 5,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "teams": "{{teams.map(t => ({...t, attack_strength: t.lambda_goals_scored > 2.5 ? 'strong' : t.lambda_goals_scored > 1.8 ? 'average' : 'weak', defense_strength: t.lambda_goals_conceded < 1.0 ? 'strong' : t.lambda_goals_conceded < 1.5 ? 'average' : 'weak'}))}}"
+                    }
+                },
+                {
+                    name: "calculate_player_lambda",
+                    priority: 6,
+                    if: "players && players.length > 0",
+                    then: {
+                        "players": "{{players.map(p => ({...p, lambda_goals: p.minutes_played > 0 ? Math.round((p.goals / (p.minutes_played / 90)) * 100) / 100 : 0, lambda_assists: p.minutes_played > 0 ? Math.round((p.assists / (p.minutes_played / 90)) * 100) / 100 : 0}))}}"
+                    }
+                },
+                {
+                    name: "generate_player_distributions",
+                    priority: 7,
+                    if: "players && players.length > 0",
+                    then: {
+                        "players": "{{players.map(p => ({...p, goal_probability_distribution: poissonDist(p.lambda_goals, 5), assist_probability_distribution: poissonDist(p.lambda_assists, 4)}))}}"
+                    }
+                },
+                {
+                    name: "calculate_fantasy_projections",
+                    priority: 8,
+                    if: "players && players.length > 0",
+                    then: {
+                        "players": "{{players.map(p => ({...p, expected_fantasy_points: Math.round((p.lambda_goals * 6 + p.lambda_assists * 3 + 2) * 100) / 100, fantasy_point_variance: Math.round((p.lambda_goals * 36 + p.lambda_assists * 9) * 100) / 100}))}}"
+                    }
+                },
+                {
+                    name: "calculate_over_under_probabilities",
+                    priority: 9,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "teams": "{{teams.map(t => { const over15 = 1 - (poissonPMF(t.lambda_goals_scored, 0) + poissonPMF(t.lambda_goals_scored, 1)); const over25 = 1 - (poissonPMF(t.lambda_goals_scored, 0) + poissonPMF(t.lambda_goals_scored, 1) + poissonPMF(t.lambda_goals_scored, 2)); return {...t, over_1_5_prob: Math.round(over15 * 100) / 100, over_2_5_prob: Math.round(over25 * 100) / 100}; })}}"
+                    }
+                },
+                {
+                    name: "calculate_league_summary",
+                    priority: 10,
+                    if: "teams && teams.length > 0",
+                    then: {
+                        "league.total_teams": "{{teams.length}}",
+                        "league.avg_goals_per_game": "{{Math.round(teams.reduce((sum, t) => sum + t.lambda_goals_scored, 0) / teams.length * 100) / 100}}",
+                        "league.highest_scoring_team": "{{teams.reduce((max, t) => t.lambda_goals_scored > max.lambda_goals_scored ? t : max, teams[0]).name}}",
+                        "league.best_defense_team": "{{teams.reduce((min, t) => t.lambda_goals_conceded < min.lambda_goals_conceded ? t : min, teams[0]).name}}",
+                        "league.most_consistent_attack": "{{teams.reduce((min, t) => { const variance = t.recent_form ? t.recent_form.reduce((sum, g) => sum + Math.pow(g - t.recent_form_avg, 2), 0) / t.recent_form.length : 999; const minVariance = min.recent_form ? min.recent_form.reduce((sum, g) => sum + Math.pow(g - min.recent_form_avg, 2), 0) / min.recent_form.length : 999; return variance < minVariance ? t : min; }, teams[0]).name}}"
+                    }
+                }
+            ]
+        };
+        
+        // Update rules editor if it's visible
+        const rulesEditor = document.getElementById('rules-editor');
+        if (rulesEditor) {
+            try {
+                rulesEditor.value = jsyaml.dump(sportsRules, {indent: 2});
+            } catch {
+                rulesEditor.value = JSON.stringify(sportsRules, null, 2);
+            }
+        }
+        
+        document.getElementById('parse-error').style.display = 'none';
+        document.getElementById('csv-status').innerHTML = '';
+        saveToLocalStorage();
+    }
+
+    function toggleRulesEditor() {
+        const section = document.getElementById('rules-section');
+        const rulesEditor = document.getElementById('rules-editor');
+        
+        if (section.style.display === 'none') {
+            // Show rules editor and populate with current rules
+            section.style.display = 'block';
+            try {
+                rulesEditor.value = jsyaml.dump(sportsRules, {indent: 2});
+            } catch {
+                rulesEditor.value = JSON.stringify(sportsRules, null, 2);
+            }
+            // Scroll to rules section
+            section.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // Hide rules editor
+            section.style.display = 'none';
+        }
+    }
+
+    function saveRules() {
+        const rulesEditor = document.getElementById('rules-editor');
+        const rulesText = rulesEditor.value;
+        
+        try {
+            // Try YAML first, fall back to JSON
+            let parsedRules;
+            try {
+                parsedRules = jsyaml.load(rulesText);
+            } catch {
+                parsedRules = JSON.parse(rulesText);
+            }
+            
+            // Update global rules
+            sportsRules = parsedRules;
+            
+            // Hide the editor
+            document.getElementById('rules-section').style.display = 'none';
+            
+            // Show success message
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = 'output success';
+            resultsDiv.textContent = 'Sports analytics rules updated successfully! Click "Run Analysis" to see results with new Poisson rules.';
+            
+            // Clear debug log
+            document.getElementById('debug').textContent = 'Rules updated. Ready to run with new Poisson analytics configuration.';
+            
+            saveToLocalStorage();
+            
+        } catch (error) {
+            alert(`Error parsing rules: ${error.message}\n\nPlease check your YAML/JSON syntax.`);
+        }
+    }
+
+    function cancelRulesEdit() {
+        // Just hide the editor without saving
+        document.getElementById('rules-section').style.display = 'none';
+    }
+
+    function clearOutput() {
+        document.getElementById('results').textContent = 'Click "Run Analysis" to start Poisson modeling...';
+        document.getElementById('results').className = 'output';
+        document.getElementById('debug').textContent = 'Debug output will appear here...';
+        document.getElementById('parse-error').style.display = 'none';
+        document.getElementById('csv-status').innerHTML = '';
+        
+        // Clear visualizations
+        document.getElementById('summary-cards').innerHTML = '';
+        document.getElementById('chart-grid').innerHTML = '';
+        
+        saveToLocalStorage();
+    }
+    
+    function createSportsVisualizations(results) {
+        const summaryCards = document.getElementById('summary-cards');
+        const chartGrid = document.getElementById('chart-grid');
+        
+        // Clear previous visualizations
+        summaryCards.innerHTML = '';
+        chartGrid.innerHTML = '';
+        
+        if (!results || !results.output) return;
+        
+        const league = results.output.league;
+        const teams = results.output.teams || [];
+        const players = results.output.players || [];
+        
+        // Create summary cards
+        if (league && teams.length > 0) {
+            const avgGoals = league.avg_goals_per_game || 0;
+            const topScorer = league.highest_scoring_team || 'N/A';
+            const bestDefense = league.best_defense_team || 'N/A';
+            const totalTeams = teams.length;
+            
+            summaryCards.innerHTML = `
+                <div class="summary-card">
+                    <h4>League Average Goals/Game</h4>
+                    <p class="value">${avgGoals.toFixed(2)}</p>
+                    <p class="change">Per team average</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Highest Scoring Team</h4>
+                    <p class="value">${topScorer}</p>
+                    <p class="change positive">Best attack</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Best Defense</h4>
+                    <p class="value">${bestDefense}</p>
+                    <p class="change positive">Fewest goals conceded</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Teams Analyzed</h4>
+                    <p class="value">${totalTeams}</p>
+                    <p class="change">With Poisson models</p>
+                </div>
+            `;
+        }
+        
+        // Create charts if we have teams
+        if (teams && teams.length > 0) {
+            // Expected Goals Distribution Chart
+            const goalsDistCtx = document.createElement('canvas');
+            goalsDistCtx.height = 300;
+            chartGrid.appendChild(createChartContainer('Expected Goals Distribution', goalsDistCtx));
+            
+            new Chart(goalsDistCtx, {
+                type: 'bar',
+                data: {
+                    labels: teams.map(t => t.name),
+                    datasets: [{
+                        label: 'Expected Goals per Game (λ)',
+                        data: teams.map(t => t.lambda_goals_scored || 0),
+                        backgroundColor: teams.map(t => 
+                            (t.lambda_goals_scored || 0) > 2.5 ? '#22c55e' : 
+                            (t.lambda_goals_scored || 0) > 1.8 ? '#f59e0b' : '#ef4444'
+                        )
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e4e4e7'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Poisson Lambda (λ) Values for Goal Scoring',
+                            color: '#e4e4e7'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a1a1aa'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a1a1aa'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Attack vs Defense Scatter
+            const scatterCtx = document.createElement('canvas');
+            scatterCtx.height = 300;
+            chartGrid.appendChild(createChartContainer('Attack vs Defense Analysis', scatterCtx));
+            
+            new Chart(scatterCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Teams',
+                        data: teams.map(t => ({
+                            x: t.lambda_goals_scored || 0,
+                            y: t.lambda_goals_conceded || 0,
+                            team: t.name
+                        })),
+                        backgroundColor: '#22c55e',
+                        borderColor: '#16a34a',
+                        pointRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Attack Rate vs Defense Rate',
+                            color: '#e4e4e7'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw.team}: Attack λ=${context.raw.x.toFixed(2)}, Defense λ=${context.raw.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Goals Scored per Game (λ)',
+                                color: '#a1a1aa'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a1a1aa'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Goals Conceded per Game (λ)',
+                                color: '#a1a1aa'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a1a1aa'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Over/Under Probabilities
+            const overUnderCtx = document.createElement('canvas');
+            overUnderCtx.height = 300;
+            chartGrid.appendChild(createChartContainer('Over/Under Goal Probabilities', overUnderCtx));
+            
+            const teamsWithOverUnder = teams.filter(t => t.over_1_5_prob !== undefined);
+            if (teamsWithOverUnder.length > 0) {
+                new Chart(overUnderCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: teamsWithOverUnder.map(t => t.name),
+                        datasets: [
+                            {
+                                label: 'Over 1.5 Goals',
+                                data: teamsWithOverUnder.map(t => (t.over_1_5_prob || 0) * 100),
+                                backgroundColor: '#22c55e'
+                            },
+                            {
+                                label: 'Over 2.5 Goals',
+                                data: teamsWithOverUnder.map(t => (t.over_2_5_prob || 0) * 100),
+                                backgroundColor: '#f59e0b'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e4e4e7'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Probability of Scoring Over X Goals (%)',
+                                color: '#e4e4e7'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#a1a1aa',
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#a1a1aa'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Player fantasy points chart
+        if (players && players.length > 0) {
+            const playersWithFantasy = players.filter(p => p.expected_fantasy_points !== undefined);
+            if (playersWithFantasy.length > 0) {
+                const fantasyCtx = document.createElement('canvas');
+                fantasyCtx.height = 300;
+                chartGrid.appendChild(createChartContainer('Fantasy Football Projections', fantasyCtx));
+                
+                new Chart(fantasyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: playersWithFantasy.map(p => p.name),
+                        datasets: [{
+                            label: 'Expected Fantasy Points',
+                            data: playersWithFantasy.map(p => p.expected_fantasy_points || 0),
+                            backgroundColor: playersWithFantasy.map(p => 
+                                (p.expected_fantasy_points || 0) > 10 ? '#22c55e' : 
+                                (p.expected_fantasy_points || 0) > 6 ? '#f59e0b' : '#ef4444'
+                            )
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Expected Fantasy Points per Game',
+                                color: '#e4e4e7'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#a1a1aa'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#a1a1aa'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    function createChartContainer(title, canvas) {
+        const container = document.createElement('div');
+        container.className = 'chart-container';
+        container.appendChild(canvas);
+        return container;
+    }
+
+    // Initialize with default data on page load
+    window.onload = function() {
+        const loaded = loadFromLocalStorage();
+        if (!loaded) {
+            resetToDefaults();
+        }
+        
+        // Initialize CSV event listener
+        const csvInput = document.getElementById('csv-input');
+        if (csvInput && !csvInput.hasAttribute('data-initialized')) {
+            csvInput.setAttribute('data-initialized', 'true');
+            csvInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const statusDiv = document.getElementById('csv-status');
+                statusDiv.innerHTML = '<div style="color: var(--info-text)">Processing sports CSV file...</div>';
+                
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        if (results.errors.length > 0) {
+                            statusDiv.innerHTML = `<div style="color: var(--error-text)">Error parsing CSV: ${results.errors[0].message}</div>`;
+                            return;
+                        }
+                        
+                        const parsedData = results.data;
+                        statusDiv.innerHTML = `<div style="color: var(--success-text)">Successfully parsed ${parsedData.length} rows</div>`;
+                        
+                        // Auto-detect if this is team or player data
+                        const firstRow = parsedData[0];
+                        const isTeamData = firstRow.hasOwnProperty('goals_scored') || firstRow.hasOwnProperty('goals_conceded');
+                        const isPlayerData = firstRow.hasOwnProperty('position') || firstRow.hasOwnProperty('team');
+                        
+                        let sportsInput;
+                        if (isTeamData && !isPlayerData) {
+                            sportsInput = {
+                                league: {
+                                    name: "Imported League",
+                                    season: "2023-24",
+                                    analysis_date: new Date().toISOString().split('T')[0]
+                                },
+                                teams: parsedData.map(row => {
+                                    const team = {};
+                                    for (const [key, value] of Object.entries(row)) {
+                                        const cleanKey = key.trim().toLowerCase().replace(/\s+/g, '_');
+                                        if (cleanKey && value !== null && value !== undefined && value !== '') {
+                                            team[cleanKey] = value;
+                                        }
+                                    }
+                                    
+                                    // Parse recent_form if it's a string
+                                    if (team.recent_form && typeof team.recent_form === 'string') {
+                                        try {
+                                            team.recent_form = JSON.parse(team.recent_form);
+                                        } catch {
+                                            team.recent_form = team.recent_form.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                                        }
+                                    }
+                                    
+                                    return team;
+                                }),
+                                players: []
+                            };
+                        } else if (isPlayerData) {
+                            sportsInput = {
+                                league: {
+                                    name: "Imported League",
+                                    season: "2023-24", 
+                                    analysis_date: new Date().toISOString().split('T')[0]
+                                },
+                                teams: [],
+                                players: parsedData.map(row => {
+                                    const player = {};
+                                    for (const [key, value] of Object.entries(row)) {
+                                        const cleanKey = key.trim().toLowerCase().replace(/\s+/g, '_');
+                                        if (cleanKey && value !== null && value !== undefined && value !== '') {
+                                            player[cleanKey] = value;
+                                        }
+                                    }
+                                    
+                                    // Parse recent_goals if it's a string
+                                    if (player.recent_goals && typeof player.recent_goals === 'string') {
+                                        try {
+                                            player.recent_goals = JSON.parse(player.recent_goals);
+                                        } catch {
+                                            player.recent_goals = player.recent_goals.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                                        }
+                                    }
+                                    
+                                    return player;
+                                })
+                            };
+                        } else {
+                            // Mixed or unknown format
+                            sportsInput = {
+                                league: {
+                                    name: "Imported Data",
+                                    analysis_date: new Date().toISOString().split('T')[0]
+                                },
+                                data: parsedData
+                            };
+                        }
+                        
+                        // Update the input editor
+                        try {
+                            document.getElementById('input-editor').value = jsyaml.dump(sportsInput, {indent: 2});
+                            statusDiv.innerHTML += `<div style="color: var(--success-text); margin-top: 10px;">Data converted to sports YAML format</div>`;
+                        } catch (error) {
+                            document.getElementById('input-editor').value = JSON.stringify(sportsInput, null, 2);
+                            statusDiv.innerHTML += `<div style="color: var(--success-text); margin-top: 10px;">Data converted to sports JSON format</div>`;
+                        }
+                        
+                        // Auto-run the engine
+                        setTimeout(runSportsAnalysis, 500);
+                    },
+                    error: function(error) {
+                        document.getElementById('csv-status').innerHTML = `<div style="color: var(--error-text)">Error: ${error.message}</div>`;
+                    }
+                });
+            });
+        }
+    };
+  </script>
+</body>
+</html>
