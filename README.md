@@ -6,7 +6,7 @@ The nvim of the browser.A single tab becomes a complete computer: state, logic, 
 ---
 ## What SPC Does
 
-###WordPress Moment for Apps:
+### WordPress Moment for Apps:
 
 Before WordPress: “I need a website” → hire a developer.
 
