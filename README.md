@@ -1,11 +1,12 @@
 # 🖥️ Single Page Computer (SPC)
-** WordPress Moment for Apps.**
+**WordPress Moment for Apps.**
+
 The nvim of the browser.A single tab becomes a complete computer: state, logic, and UI — all in text.
 
 ---
-What SPC Does
+## What SPC Does
 
-WordPress Moment for Apps:
+###WordPress Moment for Apps:
 
 Before WordPress: “I need a website” → hire a developer.
 
@@ -68,7 +69,7 @@ Zero Dependencies:
 ├── No external APIs
 └── Runs offline
 ```
-The SPC Stack
+## The SPC Stack
 
 | Layer                   | Role                                 | Analogy               |
 | ----------------------- | ------------------------------------ | --------------------- |
