@@ -1,8 +1,23 @@
 # 🖥️ Single Page Computer (SPC)
+** WordPress Moment for Apps.**
+The nvim of the browser.A single tab becomes a complete computer: state, logic, and UI — all in text.
 
-**The nvim of the browser.**
-A single tab becomes a complete computer: state, logic, and UI — all in text.
+---
+What SPC Does
 
+WordPress Moment for Apps:
+
+Before WordPress: “I need a website” → hire a developer.
+
+After WordPress: “I need a website” → click install.
+
+Today: “I need an app” → hire a developer.
+
+After SPC: “I need an app” → describe it, run it, share it.
+
+TikTok for Apps (optional framing): apps become lightweight, remixable, instant.
+
+AI-Native: SPC files are simple enough that LLMs can generate them reliably.
 ---
 
 ## 🌐 The Browser Evolution
@@ -53,6 +68,29 @@ Zero Dependencies:
 ├── No external APIs
 └── Runs offline
 ```
+The SPC Stack
+
+| Layer                   | Role                                 | Analogy               |
+| ----------------------- | ------------------------------------ | --------------------- |
+| **SPC**                 | Self-contained app unit              | WordPress site / post |
+| **Deck.Shell**          | Runtime that renders SPCs            | Web browser           |
+| **MicroService OS**     | Dashboard / launcher / marketplace   | WordPress admin panel |
+| **GitHub Pages + IPFS** | Free hosting & distribution          | Hosting/CDN           |
+| **AXIS**                | Declarative runtime for SPC rules    | Node.js               |
+| **KERN**                | Compiler layer for polyglot backends | Babel/LLVM            |
+| **MNEME**               | Verifiable state / provenance        | Git + database hybrid |
+
+🧩 Why This Matters
+
+Zero Dependencies: No backend, no build, no SaaS fees.
+
+Self-Contained: Entire app in one file or folder.
+
+Remixable: Edit a JSON/YAML rule → new app.
+
+Verifiable: Runs on IPFS, hash-addressed, provenance baked in.
+
+Scalable: From tip trackers to CRMs to agent workflows.
 
 ---
 
