@@ -16,7 +16,7 @@ Today: “I need an app” → hire a developer.
 
 After SPC: “I need an app” → describe it, run it, share it.
 
-TikTok for Apps (optional framing): apps become lightweight, remixable, instant.
+TikTok for Apps: apps become lightweight, remixable, instant.
 
 AI-Native: SPC files are simple enough that LLMs can generate them reliably.
 ---
