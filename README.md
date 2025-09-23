@@ -208,6 +208,72 @@ GitHub Pages is more powerful than it looks:
 
 ---
 
+## 📦 SPC + IPFS
+
+SPC applications are a **perfect match for IPFS** (InterPlanetary File System):
+
+### Why IPFS?
+
+* **Content-Addressed** → Every SPC (logic + state + UI) can be pinned to a unique hash.
+* **Decentralized Distribution** → No central server or app store. Anyone can host/share.
+* **Permanent Apps** → An SPC published to IPFS is immutable and retrievable forever.
+* **Verifiable by Default** → The hash itself guarantees integrity.
+
+### Workflow
+
+1. **Build your SPC** → Single file or split project.
+2. **Publish to IPFS** → `ipfs add spc-app.html`
+3. **Get a Hash** → Example: `QmXyz123...`
+4. **Share & Remix** → Anyone can fetch your SPC with:
+
+   ```bash
+   ipfs get QmXyz123...
+   ```
+
+### Advantages Over Traditional Hosting
+
+* No servers, no domains, no SSL certificates.
+* Apps are **portable artifacts** → just like MP3s or PDFs.
+* Remix culture: fork any SPC, edit rules, re-publish with a new hash.
+* Ideal for **offline-first** and **AI-generated apps** that need instant distribution.
+
+### Example
+
+```bash
+# Add SPC app to IPFS
+ipfs add spc-app.html
+
+# Output
+added QmXyz123456789abcdef spc-app.html
+
+# Retrieve SPC app anywhere
+ipfs get QmXyz123456789abcdef
+```
+
+With GitHub Pages you get zero-cost static hosting.
+With IPFS you get **decentralized, permanent, verifiable applications.**
+
+Together, they form the **WordPress for Apps stack**.
+
+---
+            ┌─────────────────┐
+            │   SPC Project   │
+            └────────┬────────┘
+                     │
+        ┌────────────┴────────────┐
+        │                         │
+┌───────▼────────┐        ┌───────▼────────┐
+│ GitHub Pages   │        │ IPFS           │
+│ - Free hosting │        │ - Hash address │
+│ - Easy deploy  │        │ - Permanent    │
+│ - Global CDN   │        │ - Verifiable   │
+└────────────────┘        └────────────────┘
+        │                         │
+        ▼                         ▼
+   `myspc.github.io`        `ipfs://QmXyz...`
+
+--
+
 ## 🧩 Live Examples
 
 ### Financial Analytics Engine
