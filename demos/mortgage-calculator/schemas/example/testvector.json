@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AXIS/KERN Regression Schema",
+  "description": "Defines reproducible regression tests and LLM-generated scenarios",
+
+  "type": "object",
+  "required": ["scenario", "input", "expectedOutput"],
+  "properties": {
+    "scenario": { "type": "string", "description": "Human-readable scenario name" },
+    "description": { "type": "string" },
+    "input": { "$ref": "../axis_rules.schema.json#/mortgageState" },
+    "expectedOutput": { "$ref": "../axis_rules.schema.json#/mortgageState" },
+    "expectedViolations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "numerical_sanity",
+          "ratio_bounds",
+          "approval_consistency",
+          "cash_flow_coherence",
+          "rule_dependency",
+          "state_progress",
+          "monotonic_rules"
+        ]
+      }
+    },
+    "tolerance": {
+      "type": "object",
+      "description": "Numeric tolerance thresholds for regression comparisons",
+      "properties": {
+        "numericDelta": { "type": "number", "default": 0.001 },
+        "percentDelta": { "type": "number", "default": 0.1 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "engineVersion": { "type": "string" }
+      }
+    }
+  }
+}
+

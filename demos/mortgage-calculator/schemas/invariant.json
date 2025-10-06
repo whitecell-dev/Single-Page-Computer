@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AXIS/KERN Invariant Validation Schema",
+  "description": "Schema for system invariants and validation rules",
+
+  "invariantValidator": {
+    "type": "object",
+    "properties": {
+      "numericalSanity": {
+        "type": "object",
+        "properties": {
+          "checkFinite": { "type": "boolean", "default": true },
+          "checkBounds": { "type": "boolean", "default": true }
+        }
+      },
+      "ratioBounds": {
+        "type": "object",
+        "properties": {
+          "housingRatioMin": { "type": "number", "default": 0 },
+          "housingRatioMax": { "type": "number", "default": 100 },
+          "dtiMin": { "type": "number", "default": 0 },
+          "dtiMax": { "type": "number", "default": 100 },
+          "ltvMin": { "type": "number", "default": 0 },
+          "ltvMax": { "type": "number", "default": 150 }
+        }
+      },
+      "monotonicRules": {
+        "type": "object",
+        "properties": {
+          "allowDuplicates": { "type": "boolean", "default": false },
+          "maxDuplicates": { "type": "integer", "default": 0 }
+        }
+      },
+      "stateProgress": {
+        "type": "object", 
+        "properties": {
+          "minChangesPerIteration": { "type": "integer", "default": 1 },
+          "stagnationThreshold": { "type": "integer", "default": 3 }
+        }
+      },
+      "approvalConsistency": {
+        "type": "object",
+        "properties": {
+          "requireCanApprove": { "type": "boolean", "default": true },
+          "requireFinalDecision": { "type": "boolean", "default": true },
+          "checkStatusAlignment": { "type": "boolean", "default": true }
+        }
+      },
+      "cashFlowCoherence": {
+        "type": "object",
+        "properties": {
+          "tolerance": { "type": "number", "default": 1 },
+          "validateCashNeeded": { "type": "boolean", "default": true }
+        }
+      },
+      "ruleDependencyIntegrity": {
+        "type": "object",
+        "properties": {
+          "dependencies": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      },
+      "auditContinuity": {
+        "type": "object",
+        "properties": {
+          "checkTimeline": { "type": "boolean", "default": true },
+          "maxTimeGapMs": { "type": "integer", "default": 5000 }
+        }
+      },
+      "errorVisibility": {
+        "type": "object",
+        "properties": {
+          "requireAuditEntries": { "type": "boolean", "default": true },
+          "minErrorLevel": { "type": "string", "enum": ["error", "warn"], "default": "error" }
+        }
+      }
+    }
+  },
+
+  "invariantViolation": {
+    "type": "object",
+    "required": ["invariant", "severity", "message"],
+    "properties": {
+      "invariant": {
+        "type": "string",
+        "enum": [
+          "numerical_sanity",
+          "ratio_bounds", 
+          "monotonic_rules",
+          "state_progress",
+          "approval_consistency",
+          "cash_flow_coherence",
+          "rule_dependency",
+          "audit_continuity",
+          "error_visibility"
+        ]
+      },
+      "severity": {
+        "type": "string",
+        "enum": ["error", "warn", "info"]
+      },
+      "message": { "type": "string" },
+      "details": { "type": "object" },
+      "timestamp": { "type": "string", "format": "date-time" },
+      "iteration": { "type": "integer", "minimum": 1 }
+    }
+  }
+}

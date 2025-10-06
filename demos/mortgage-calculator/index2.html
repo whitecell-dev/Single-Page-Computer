@@ -458,6 +458,271 @@
             }
         }
         
+	// ═══════════════════════════════════════════════════════════════════
+	// INVARIANT VALIDATION MODULE
+	// ═══════════════════════════════════════════════════════════════════
+		class AxisInvariantValidator {
+			constructor() {
+			this.violations = [];
+			}
+
+			validate(state, audit = [], rulesApplied = [], currentIteration = 0) {
+			this.violations = [];
+			const context = { state, audit, rulesApplied, currentIteration };
+
+			// Run all invariant checks
+			this.numericalSanity(state);
+			this.ratioBounds(state);
+			this.monotonicRules(rulesApplied, state);
+			this.stateProgress(context);
+			this.approvalConsistency(state);
+			this.cashFlowCoherence(state);
+			this.ruleDependencyIntegrity(state, rulesApplied);
+			this.auditContinuity(audit);
+			this.errorVisibility(audit, context);
+
+			return this.violations;
+			}
+
+			// 1. Numerical Sanity
+			numericalSanity(state) {
+			const flatten = (obj, prefix = '') => {
+				let result = {};
+				for (const key in obj) {
+				if (obj.hasOwnProperty(key)) {
+					const value = obj[key];
+					const newKey = prefix ? `${prefix}.${key}` : key;
+					if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+					Object.assign(result, flatten(value, newKey));
+					} else {
+					result[newKey] = value;
+					}
+				}
+				}
+				return result;
+			};
+
+			const flat = flatten(state);
+			const badNumbers = Object.entries(flat)
+				.filter(([key, value]) => typeof value === 'number' && !isFinite(value))
+				.map(([key]) => key);
+
+			if (badNumbers.length > 0) {
+				this.violations.push({
+				invariant: 'numerical_sanity',
+				severity: 'error',
+				message: `NaN/Infinity detected in fields: ${badNumbers.join(', ')}`,
+				details: { badNumbers }
+				});
+			}
+			}
+
+			// 2. Ratio Bounds
+			ratioBounds(state) {
+			const { ratios = {} } = state;
+			const issues = [];
+
+			if (ratios.housing_ratio !== undefined) {
+				if (ratios.housing_ratio < 0 || ratios.housing_ratio > 100) {
+				issues.push(`housing_ratio out of bounds: ${ratios.housing_ratio}`);
+				}
+			}
+
+			if (ratios.debt_to_income !== undefined) {
+				if (ratios.debt_to_income < 0 || ratios.debt_to_income > 100) {
+				issues.push(`debt_to_income out of bounds: ${ratios.debt_to_income}`);
+				}
+			}
+
+			if (state.loan?.ltv_ratio !== undefined) {
+				if (state.loan.ltv_ratio < 0 || state.loan.ltv_ratio > 150) {
+				issues.push(`ltv_ratio out of bounds: ${state.loan.ltv_ratio}`);
+				}
+			}
+
+			if (issues.length > 0) {
+				this.violations.push({
+				invariant: 'ratio_bounds',
+				severity: 'warn',
+				message: `Ratio bounds violated: ${issues.join('; ')}`,
+				details: { issues }
+				});
+			}
+			}
+
+			// 3. Monotonic Rule Application
+			monotonicRules(rulesApplied, state) {
+			const duplicates = rulesApplied.filter((rule, index) => 
+				rulesApplied.indexOf(rule) !== index
+			);
+
+			if (duplicates.length > 0) {
+				this.violations.push({
+				invariant: 'monotonic_rules',
+				severity: 'warn',
+				message: `Rules applied multiple times: ${[...new Set(duplicates)].join(', ')}`,
+				details: { duplicates: [...new Set(duplicates)] }
+				});
+			}
+			}
+
+			// 4. State Progress Direction
+			stateProgress(context) {
+			const { currentIteration, audit } = context;
+		
+			if (currentIteration > 1) {
+		    const stateChangeEntries = audit.filter(entry => 
+			entry.message.includes('state changed') || 
+			entry.message.includes('Applied:')
+		    ).length;
+
+		    if (stateChangeEntries === 0) {
+			this.violations.push({
+			    invariant: 'state_progress',
+			    severity: 'warn', 
+			    message: `Iteration ${currentIteration} made no detectable state changes`,
+			    details: { iteration: currentIteration }
+			});
+		    }
+		}
+	    }
+
+			// 5. Approval Status Consistency
+			approvalConsistency(state) {
+			const { approval = {} } = state;
+
+			if (approval.status === 'approved') {
+				const issues = [];
+
+				if (!approval.can_approve) {
+				issues.push('approved but can_approve is false');
+				}
+
+				if (!approval.final_decision) {
+				issues.push('approved but final_decision is false');
+				}
+
+				if (approval.housing_ratio_status === 'fail') {
+				issues.push('approved but housing_ratio_status is fail');
+				}
+
+				if (approval.dti_status === 'fail') {
+				issues.push('approved but dti_status is fail');
+				}
+
+				if (approval.credit_status === 'insufficient') {
+				issues.push('approved but credit_status is insufficient');
+				}
+
+				if (issues.length > 0) {
+				this.violations.push({
+					invariant: 'approval_consistency',
+					severity: 'error',
+					message: `Approval state inconsistent: ${issues.join('; ')}`,
+					details: { issues }
+				});
+				}
+			}
+			}
+
+			// 6. Cash Flow Coherence
+			cashFlowCoherence(state) {
+			const { loan = {} } = state;
+
+			if (loan.down_payment !== undefined && loan.closing_costs !== undefined && 
+				loan.total_cash_needed !== undefined) {
+		    
+				const expected = loan.down_payment + loan.closing_costs;
+				const actual = loan.total_cash_needed;
+				const tolerance = 1; // Allow for floating point rounding
+
+				if (Math.abs(expected - actual) > tolerance) {
+				this.violations.push({
+					invariant: 'cash_flow_coherence',
+					severity: 'error',
+					message: `Cash flow mismatch: down_payment (${loan.down_payment}) + closing_costs (${loan.closing_costs}) = ${expected}, but total_cash_needed = ${actual}`,
+					details: { expected, actual, difference: Math.abs(expected - actual) }
+				});
+				}
+			}
+			}
+
+			// 7. Rule Dependency Integrity
+			ruleDependencyIntegrity(state, rulesApplied) {
+			const dependencies = {
+				'calculate_combined_debt': ['household.income_calculated'],
+				'determine_credit_score': ['household.income_calculated'],
+				'calculate_monthly_payment': ['loan.interest_rate'],
+				'calculate_debt_to_income': ['loan.payment_calculated'],
+				'check_housing_ratio_limit': ['ratios.housing_ratio'],
+				'check_debt_to_income_limit': ['ratios.debt_to_income'],
+				'determine_final_approval': [
+				'approval.housing_ratio_checked', 
+				'approval.dti_checked', 
+				'approval.credit_checked'
+				]
+			};
+
+			for (const [rule, deps] of Object.entries(dependencies)) {
+				if (rulesApplied.includes(rule)) {
+				const missing = deps.filter(dep => {
+					const value = this.getNestedValue(state, dep);
+					return value === undefined || value === false || value === 0;
+				});
+
+				if (missing.length > 0) {
+					this.violations.push({
+					invariant: 'rule_dependency',
+					severity: 'error',
+					message: `Rule '${rule}' fired but dependencies missing: ${missing.join(', ')}`,
+					details: { rule, missingDependencies: missing }
+					});
+				}
+				}
+			}
+			}
+
+			// 8. Audit Continuity
+			auditContinuity(audit) {
+			for (let i = 1; i < audit.length; i++) {
+				const prev = new Date(audit[i-1].timestamp);
+				const curr = new Date(audit[i].timestamp);
+
+				if (curr < prev) {
+				this.violations.push({
+					invariant: 'audit_continuity',
+					severity: 'error',
+					message: `Audit timeline broken at entry ${i}: ${audit[i].timestamp} < ${audit[i-1].timestamp}`,
+					details: { index: i, previous: audit[i-1].timestamp, current: audit[i].timestamp }
+				});
+				break;
+				}
+			}
+			}
+
+			// 9. Error Visibility Guarantee
+			errorVisibility(audit, context) {
+			const errorEntries = audit.filter(entry => 
+				entry.level === 'error' || entry.message.includes('Error:') || entry.message.includes('error')
+			);
+
+			// If we have any violations but no error entries, that's a problem
+			if (this.violations.some(v => v.severity === 'error') && errorEntries.length === 0) {
+				this.violations.push({
+				invariant: 'error_visibility',
+				severity: 'error',
+				message: 'Error violations detected but no error entries in audit trail',
+				details: { violations: this.violations.filter(v => v.severity === 'error').map(v => v.invariant) }
+				});
+			}
+			}
+
+			// Helper to get nested values
+			getNestedValue(obj, path) {
+			return path.split('.').reduce((current, key) => 
+				current && current[key] !== undefined ? current[key] : undefined, obj);
+			}
+		}
         // ═══════════════════════════════════════════════════════════════════
         // AXIS/KERN RULES ENGINE
         // ═══════════════════════════════════════════════════════════════════
@@ -477,7 +742,27 @@
                     ITERATION_MANAGER: 0
                 };
             }
+	    
+			validateInvariants(state, rulesApplied) {
+			const validator = new AxisInvariantValidator();
+			const violations = validator.validate(
+				state, 
+				this.auditTrail, 
+				rulesApplied, 
+				this.currentIteration
+			);
 
+			violations.forEach(violation => {
+				this.log(`INVARIANT_VIOLATION: ${violation.invariant} - ${violation.message}`, 
+					violation.severity);
+			});
+
+			return violations;
+			}
+
+	    
+
+		    
             // PRIMITIVE 8: ITERATION_MANAGER
             apply(inputData, rulesConfig) {
                 this.primitiveCallCounts.ITERATION_MANAGER++;
@@ -496,6 +781,46 @@
                 const sortedRules = [...rulesConfig.rules].sort((a, b) => 
                     (a.priority || 999) - (b.priority || 999)
                 );
+
+		    while (changed && iteration < maxIterations) {
+			changed = false;
+			iteration++;
+			this.currentIteration = iteration;
+			this.log(`--- Tick ${iteration} ---`);
+		    
+		    const iterationChanges = new Map();
+		    const iterationRulesApplied = [];
+
+		    for (let rule of sortedRules) {
+			const previousState = JSON.stringify(currentState);
+
+			if (this.evaluateCondition(rule.if, currentState)) {
+			    this.log(`Applied: ${rule.name}`);
+			    iterationRulesApplied.push(rule.name);
+			    
+			    if (rule.then) {
+				const stateChanges = this.applyTransformationsWithTracking(
+				    currentState, 
+				    rule.then, 
+				    rule.name,
+				    iterationChanges
+				);
+				
+				currentState = stateChanges.newState;
+				
+				if (previousState !== JSON.stringify(currentState)) {
+				    changed = true;
+				}
+			    }
+			}
+		    }
+
+		    // 🆕 VALIDATE INVARIANTS AFTER EACH ITERATION
+		    const violations = this.validateInvariants(currentState, iterationRulesApplied);
+		    if (violations.length > 0) {
+			this.log(`Found ${violations.length} invariant violations in iteration ${iteration}`, 'warn');
+		    }
+		}
 
                 while (changed && iteration < maxIterations) {
                     changed = false;
@@ -925,7 +1250,20 @@
             const loan = output.loan || {};
             const ratios = output.ratios || {};
             const household = output.household || {};
-            
+            const violations = result.audit.filter(entry => 
+	        entry.message.includes('INVARIANT_VIOLATION')
+	    );
+	    
+	    if (violations.length > 0) {
+		const violationsHtml = violations.map(v => `
+		    <div class="error-box" style="margin-top: 12px; font-size: 11px;">
+			<strong>${v.level.toUpperCase()}:</strong> ${v.message}
+		    </div>
+		`).join('');
+		
+		document.getElementById('output').innerHTML += violationsHtml;
+	    }
+	}
             let statusClass = 'status-denied';
             let statusText = '❌ Loan Denied';
             
@@ -1229,4 +1567,3 @@
     </script>
 </body>
 </html>
-

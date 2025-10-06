@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Governance Schema",
+  "description": "Access control and verification policy for reasoning systems",
+  "type": "object",
+  "properties": {
+    "owners": { "type": "array", "items": { "type": "string" } },
+    "signingKey": { "type": "string" },
+    "permissionMatrix": {
+      "type": "object",
+      "properties": {
+        "read": { "type": "array", "items": { "type": "string" } },
+        "write": { "type": "array", "items": { "type": "string" } },
+        "execute": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "verificationPolicy": {
+      "type": "string",
+      "enum": ["hash_chain", "signature", "zero_knowledge"]
+    }
+  }
+}
+

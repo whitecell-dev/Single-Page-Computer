@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AXIS/KERN System Manifest",
+  "description": "High-level manifest for declaring a complete reasoning engine",
+  "type": "object",
+  "required": ["id", "version", "primitives", "rules", "invariants", "execution"],
+  "properties": {
+    "id": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+(\\.\\d+)?$" },
+    "description": { "type": "string" },
+    "author": { "type": "string" },
+    "primitives": { "$ref": "axis_primitives.schema.json" },
+    "rules": { "$ref": "axis_rules.schema.json" },
+    "invariants": { "$ref": "axis_invariants.schema.json" },
+    "execution": { "$ref": "kern_execution.schema.json" },
+    "mneme": { "$ref": "mneme_ledger.schema.json" },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastModified": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
+

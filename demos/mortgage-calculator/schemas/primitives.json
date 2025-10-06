@@ -1,0 +1,257 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AXIS/KERN Primitives Schema",
+  "description": "Schema definitions for the 8 core primitives in the mortgage engine",
+  
+  "definitions": {
+    "primitive": {
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "const": "primitive" },
+        "title": { "type": "string" },
+        "implementation": { 
+          "type": "string",
+          "enum": [
+            "EXPRESSION_EVALUATOR",
+            "CONTEXT_SANITIZER", 
+            "CONDITION_EVALUATOR",
+            "TEMPLATE_RESOLVER",
+            "STATE_MUTATOR",
+            "OBJECT_FLATTENER",
+            "RULE_APPLICATOR",
+            "ITERATION_MANAGER"
+          ]
+        },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "maxLength": { "type": "integer", "minimum": 1, "maximum": 1000 },
+            "safeGlobals": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "blacklist": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "timeoutMs": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "status": { "enum": ["active", "disabled"] },
+        "callCount": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+
+  "primitives": {
+    "EXPRESSION_EVALUATOR": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expression Evaluator Primitive",
+      "description": "Safe expression evaluation with security constraints",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^expr_eval_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "EXPRESSION_EVALUATOR" },
+        "implementation": { "const": "EXPRESSION_EVALUATOR" },
+        "spec": {
+          "type": "object",
+          "required": ["blacklist", "safeGlobals"],
+          "properties": {
+            "maxLength": { "type": "integer", "default": 300, "maximum": 1000 },
+            "safeGlobals": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["Math", "Date", "parseInt", "parseFloat", "Number", "Boolean", "String"]
+            },
+            "blacklist": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": [
+                "process", "require", "global", "window", "this", "eval", "Function",
+                "fetch", "XMLHttpRequest", "postMessage", "import", "await", "constructor",
+                "prototype", "setTimeout", "setInterval", "while", "for", "do", "class",
+                "->", "=>"
+              ]
+            },
+            "pattern": {
+              "type": "string",
+              "default": "^[\\w\\d\\s\\.\\_\\+\\-\\*\\/\\%\\!\\=\\<\\>\\?\\:\\&\\|\\(\\)\\,\\[\\]\\'\\\"\\`]+$"
+            }
+          }
+        }
+      }
+    },
+
+    "CONTEXT_SANITIZER": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Context Sanitizer Primitive", 
+      "description": "Creates safe execution context by flattening and sanitizing input",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^context_sanitizer_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "CONTEXT_SANITIZER" },
+        "implementation": { "const": "CONTEXT_SANITIZER" },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "flattenDelimiter": { "type": "string", "default": "_" },
+            "preserveStructure": { "type": "boolean", "default": false },
+            "maxDepth": { "type": "integer", "default": 10 }
+          }
+        }
+      }
+    },
+
+    "CONDITION_EVALUATOR": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Condition Evaluator Primitive",
+      "description": "Evaluates rule conditions with safe expression evaluation",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^condition_eval_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "CONDITION_EVALUATOR" },
+        "implementation": { "const": "CONDITION_EVALUATOR" },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "fallbackOnError": { "type": "boolean", "default": false },
+            "logEvaluationErrors": { "type": "boolean", "default": true },
+            "maxConditionLength": { "type": "integer", "default": 500 }
+          }
+        }
+      }
+    },
+
+    "TEMPLATE_RESOLVER": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Template Resolver Primitive",
+      "description": "Resolves template expressions with type-aware coercion",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^template_resolver_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "TEMPLATE_RESOLVER" },
+        "implementation": { "const": "TEMPLATE_RESOLVER" },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "templatePattern": { "type": "string", "default": "\\{\\{(.*?)\\}\\}" },
+            "typeCoercion": { 
+              "type": "string", 
+              "enum": ["smart", "strict", "lenient"],
+              "default": "smart"
+            },
+            "detectIntent": { "type": "boolean", "default": true },
+            "builtinFunctions": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["now()", "uuid()"]
+            }
+          }
+        }
+      }
+    },
+
+    "STATE_MUTATOR": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "State Mutator Primitive",
+      "description": "Safely mutates nested state paths with conflict detection",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^state_mutator_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "STATE_MUTATOR" },
+        "implementation": { "const": "STATE_MUTATOR" },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "maxPathDepth": { "type": "integer", "default": 10 },
+            "createIntermediate": { "type": "boolean", "default": true },
+            "conflictResolution": {
+              "type": "string",
+              "enum": ["priority_override", "first_wins", "last_wins", "error"],
+              "default": "priority_override"
+            }
+          }
+        }
+      }
+    },
+
+    "OBJECT_FLATTENER": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Object Flattener Primitive",
+      "description": "Flattens nested objects for expression context",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^object_flattener_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "OBJECT_FLATTENER" },
+        "implementation": { "const": "OBJECT_FLATTENER" },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "delimiter": { "type": "string", "default": "_" },
+            "maxDepth": { "type": "integer", "default": 10 },
+            "preserveArrays": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    },
+
+    "RULE_APPLICATOR": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Rule Applicator Primitive",
+      "description": "Applies rule transformations with change tracking",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^rule_applicator_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "RULE_APPLICATOR" },
+        "implementation": { "const": "RULE_APPLICATOR" },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "trackChanges": { "type": "boolean", "default": true },
+            "conflictLogging": { "type": "boolean", "default": true },
+            "atomicApplication": { "type": "boolean", "default": false }
+          }
+        }
+      }
+    },
+
+    "ITERATION_MANAGER": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Iteration Manager Primitive",
+      "description": "Manages rule engine iterations with convergence detection",
+      "type": "object",
+      "required": ["id", "type", "title", "implementation"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^iteration_manager_" },
+        "type": { "const": "primitive" },
+        "title": { "const": "ITERATION_MANAGER" },
+        "implementation": { "const": "ITERATION_MANAGER" },
+        "spec": {
+          "type": "object",
+          "required": ["maxIterations"],
+          "properties": {
+            "maxIterations": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "convergenceThreshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0 },
+            "invariantValidation": { "type": "boolean", "default": true }
+          }
+        }
+      }
+    }
+  }
+}
