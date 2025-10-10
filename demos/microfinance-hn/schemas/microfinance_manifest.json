@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "axis_microfinance_honduras",
+  "version": "1.0.0",
+  "description": "Offline microfinance engine for Honduras",
+  "author": "AXIS Microfinance",
+  "primitives": "./schemas/microfinance_primitives.json",
+  "rules": "./schemas/microfinance_rules.json", 
+  "invariants": "./schemas/microfinance_invariants.json",
+  "execution": "./schemas/microfinance_execution.json",
+  "currency": "HNL",
+  "language": "es",
+  "metadata": {
+    "createdAt": "2024-01-15T00:00:00Z",
+    "targetRegion": "Honduras"
+  }
+}

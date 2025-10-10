@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIS/KERN Mortgage Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Monaco', 'Consolas', 'SF Mono', monospace;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #16213e;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #2a3f5f;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #fff;
+            padding: 24px 30px;
+            border-bottom: 2px solid #3f51b5;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .header .subtitle {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-top: 4px;
+            font-family: system-ui;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            min-height: 700px;
+        }
+        
+        .panel {
+            padding: 24px;
+            border-right: 1px solid #2a3f5f;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+        
+        .panel:last-child {
+            border-right: none;
+        }
+        
+        .panel-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #64b5f6;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a3f5f;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.75em;
+            color: #90caf9;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f1419;
+            border: 1px solid #2a3f5f;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-family: 'Monaco', monospace;
+            transition: all 0.2s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3f51b5;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+        }
+        
+        textarea {
+            height: 440px;
+            resize: vertical;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            font-family: system-ui;
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .status-badge {
+            padding: 12px 16px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        
+        .status-approved {
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+            border: 1px solid #388e3c;
+        }
+        
+        .status-conditional {
+            background: linear-gradient(135deg, #ef6c00 0%, #e65100 100%);
+            border: 1px solid #f57c00;
+        }
+        
+        .status-denied {
+            background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+            border: 1px solid #d32f2f;
+        }
+        
+        .metric-card {
+            background: #0f1419;
+            border: 1px solid #2a3f5f;
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 12px;
+        }
+        
+        .metric-label {
+            color: #90caf9;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            color: #fff;
+            font-weight: 600;
+            font-family: 'Monaco', monospace;
+        }
+        
+        .audit-log {
+            background: #0f1419;
+            border: 1px solid #2a3f5f;
+            border-radius: 6px;
+            padding: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        
+        .audit-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #1a2332;
+            color: #b0bec5;
+        }
+        
+        .audit-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .audit-timestamp {
+            color: #4fc3f7;
+            font-weight: 600;
+        }
+        
+        .error-box {
+            background: rgba(198, 40, 40, 0.2);
+            border: 1px solid #c62828;
+            color: #ef5350;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+        
+        .warn-box {
+            background: rgba(255, 152, 0, 0.2);
+            border: 1px solid #ff9800;
+            color: #ffb74d;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+        
+        .primitive-indicator {
+            display: inline-block;
+            background: #1e88e5;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .panel {
+                border-right: none;
+                border-bottom: 1px solid #2a3f5f;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0f1419;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2a3f5f;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f51b5;
+        }
+        
+        .output-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .output-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .output-container::-webkit-scrollbar-track {
+            background: #0f1419;
+            border-radius: 3px;
+        }
+
+        .output-container::-webkit-scrollbar-thumb {
+            background: #2a3f5f;
+            border-radius: 3px;
+        }
+
+        .output-container::-webkit-scrollbar-thumb:hover {
+            background: #3f51b5;
+        }
+
+        /* Make sure audit log entries are visible */
+        .audit-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid #1a2332;
+            color: #b0bec5;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .audit-error {
+            color: #ef5350 !important;
+            border-left: 3px solid #c62828;
+            padding-left: 8px;
+            background: rgba(198, 40, 40, 0.1);
+            margin: 2px 0;
+        }
+
+        .audit-warn {
+            color: #ffb74d !important;
+            border-left: 3px solid #ff9800;
+            padding-left: 8px;
+            background: rgba(255, 152, 0, 0.1);
+            margin: 2px 0;
+        }
+        
+        /* Dependency Graph Styles */
+        .dependency-graph {
+            background: #0f1419;
+            border: 1px solid #2a3f5f;
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .graph-node {
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .node-rule {
+            background: rgba(30, 136, 229, 0.3);
+            border: 1px solid #1e88e5;
+            color: #64b5f6;
+        }
+        
+        .node-field {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4caf50;
+            color: #81c784;
+        }
+        
+        .edge {
+            margin-left: 20px;
+            color: #b0bec5;
+        }
+        
+        .edge-read {
+            color: #4fc3f7;
+        }
+        
+        .edge-write {
+            color: #ffb74d;
+        }
+        
+        .analysis-issues {
+            margin-top: 16px;
+        }
+        
+        .issue-item {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .issue-critical {
+            background: rgba(198, 40, 40, 0.2);
+            border-left: 3px solid #c62828;
+            color: #ef5350;
+        }
+        
+        .issue-warning {
+            background: rgba(255, 152, 0, 0.2);
+            border-left: 3px solid #ff9800;
+            color: #ffb74d;
+        }
+        
+        .issue-info {
+            background: rgba(30, 136, 229, 0.2);
+            border-left: 3px solid #1e88e5;
+            color: #64b5f6;
+        }
+        
+        .mermaid-container {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 12px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ AXIS/KERN Mortgage Engine</h1>
+            <div class="subtitle">Declarative logic runtime • 8 primitives • Zero dependencies</div>
+        </div>
+        
+        <div class="main-grid">
+            <!-- INPUT PANEL -->
+            <div class="panel">
+                <div class="panel-title">📥 Input Data (JSON)</div>
+                
+                <div class="form-group">
+                    <label>Application State</label>
+                    <textarea id="inputData">{
+  "applicant": {
+    "name": "Sarah Johnson",
+    "age": 32,
+    "employment_status": "full_time",
+    "annual_income": 125000,
+    "employment_years": 8,
+    "credit_score": 720,
+    "existing_debt": 45000,
+    "savings": 180000,
+    "first_time_buyer": false
+  },
+  "co_applicant": {
+    "exists": true,
+    "annual_income": 95000,
+    "employment_years": 5,
+    "credit_score": 740,
+    "existing_debt": 22000
+  },
+  "property": {
+    "purchase_price": 650000,
+    "property_type": "single_family",
+    "location_state": "CA",
+    "appraised_value": 0,
+    "property_tax_annual": 8125,
+    "hoa_monthly": 250
+  },
+  "loan": {
+    "requested_amount": 520000,
+    "down_payment": 130000,
+    "term_years": 30,
+    "type": "conventional",
+    "interest_rate": 0,
+    "processed": false
+  },
+  "insurance": {
+    "homeowners_annual": 2400,
+    "pmi_required": false,
+    "pmi_monthly": 0
+  },
+  "ratios": {
+    "calculated": false
+  },
+  "approval": {
+    "status": "pending",
+    "conditions": [],
+    "final_decision": false
+  }
+}</textarea>
+                </div>
+                
+                <div class="button-row">
+                    <button onclick="processLoan()">🚀 Execute</button>
+                    <button onclick="loadSample('good')">✅ Good</button>
+                    <button onclick="loadSample('poor')">❌ Poor</button>
+                    <button onclick="showAuditTrail()">📊 Audit</button>
+                    <button onclick="analyzeDependencies()">🔗 Dependencies</button>
+                </div>
+            </div>
+            
+            <!-- OUTPUT PANEL -->
+            <div class="panel">
+                <div class="panel-title">📤 Execution Results</div>
+                <div id="output" class="output-container">
+                    <div class="metric-card">
+                        <div style="text-align: center; padding: 20px; color: #90caf9;">
+                            <p style="font-size: 14px; margin-bottom: 8px;">Ready to Process</p>
+                            <p style="font-size: 11px; opacity: 0.7;">Click Execute to run pipeline</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KERNEL STATUS PANEL -->
+            <div class="panel">
+                <div class="panel-title">⚙️ Kernel Status</div>
+                <div id="kernelStatus">
+                    <div class="metric-card">
+                        <div class="metric-row">
+                            <span class="metric-label">Engine State:</span>
+                            <span class="metric-value">IDLE</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Rules Loaded:</span>
+                            <span class="metric-value">14</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Primitives:</span>
+                            <span class="metric-value">8</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Max Iterations:</span>
+                            <span class="metric-value">20</span>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-title" style="margin-top: 20px;">🧩 Active Primitives</div>
+                    <div class="metric-card">
+                        <div style="font-size: 10px; line-height: 1.8; color: #b0bec5;">
+                            <div>✓ EXPRESSION_EVALUATOR</div>
+                            <div>✓ CONTEXT_SANITIZER</div>
+                            <div>✓ CONDITION_EVALUATOR</div>
+                            <div>✓ TEMPLATE_RESOLVER</div>
+                            <div>✓ STATE_MUTATOR</div>
+                            <div>✓ OBJECT_FLATTENER</div>
+                            <div>✓ RULE_APPLICATOR</div>
+                            <div>✓ ITERATION_MANAGER</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════
+        // PRIMITIVE 1: EXPRESSION_EVALUATOR (safeEval)
+        // ═══════════════════════════════════════════════════════════════════
+        const SAFE_EVAL_BLACKLIST = [
+            "process", "require", "global", "window", "this", "eval", "Function",
+            "fetch", "XMLHttpRequest", "postMessage", "import", "await", "constructor",
+            "prototype", "setTimeout", "setInterval", "while", "for", "do", "class",
+            "->", "=>"
+        ];
+        
+        const SAFE_GLOBALS = {
+            Math: Math,
+            Date: Date,
+            parseInt: parseInt,
+            parseFloat: parseFloat,
+            Number: Number,
+            Boolean: Boolean,
+            String: String
+        };
+        
+        function safeEval(expression, context = {}, opts = {}) {
+            const maxLen = opts.maxLen || 300;
+            if (typeof expression !== "string") throw new Error("Expression must be string");
+            if (expression.length > maxLen) throw new Error("Expression too long");
+            
+            for (const bad of SAFE_EVAL_BLACKLIST) {
+                if (/^[a-z]+$/i.test(bad)) {
+                    const re = new RegExp(`\\b${bad}\\b`, 'i');
+                    if (re.test(expression)) throw new Error("Blocked unsafe token");
+                } else {
+                    if (expression.includes(bad)) throw new Error("Blocked unsafe token");
+                }
+            }
+            
+            if (!/^[\w\d\s\.\_\+\-\*\/\%\!\=\<\>\?\:\&\|\(\)\,\[\]\'\"\`]+$/.test(expression)) {
+                throw new Error("Invalid characters");
+            }
+            
+            const sandbox = Object.assign({}, SAFE_GLOBALS, context || {});
+            
+            if (/\b__proto__|\bconstructor\b/.test(expression)) {
+                throw new Error("Blocked unsafe property access");
+            }
+            
+            try {
+                const argNames = Object.keys(sandbox);
+                const argValues = Object.values(sandbox);
+                const src = `"use strict"; return (${expression});`;
+                const fn = Function(...argNames, src);
+                return fn(...argValues);
+            } catch (e) {
+                throw new Error("Unsafe or invalid expression");
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // INVARIANT VALIDATION MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        class AxisInvariantValidator {
+            constructor() {
+                this.violations = [];
+            }
+
+            validate(state, audit = [], rulesApplied = [], currentIteration = 0) {
+                this.violations = [];
+                const context = { state, audit, rulesApplied, currentIteration };
+
+                // Run all invariant checks
+                this.numericalSanity(state);
+                this.ratioBounds(state);
+                this.monotonicRules(rulesApplied, state);
+                this.stateProgress(context);
+                this.approvalConsistency(state);
+                this.cashFlowCoherence(state);
+                this.ruleDependencyIntegrity(state, rulesApplied);
+                this.auditContinuity(audit);
+                this.errorVisibility(audit, context);
+
+                return this.violations;
+            }
+
+            // 1. Numerical Sanity
+            numericalSanity(state) {
+                const flatten = (obj, prefix = '') => {
+                    let result = {};
+                    for (const key in obj) {
+                        if (obj.hasOwnProperty(key)) {
+                            const value = obj[key];
+                            const newKey = prefix ? `${prefix}.${key}` : key;
+                            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                Object.assign(result, flatten(value, newKey));
+                            } else {
+                                result[newKey] = value;
+                            }
+                        }
+                    }
+                    return result;
+                };
+
+                const flat = flatten(state);
+                const badNumbers = Object.entries(flat)
+                    .filter(([key, value]) => typeof value === 'number' && !isFinite(value))
+                    .map(([key]) => key);
+
+                if (badNumbers.length > 0) {
+                    this.violations.push({
+                        invariant: 'numerical_sanity',
+                        severity: 'error',
+                        message: `NaN/Infinity detected in fields: ${badNumbers.join(', ')}`,
+                        details: { badNumbers }
+                    });
+                }
+            }
+
+            // 2. Ratio Bounds
+            ratioBounds(state) {
+                const { ratios = {} } = state;
+                const issues = [];
+
+                if (ratios.housing_ratio !== undefined) {
+                    if (ratios.housing_ratio < 0 || ratios.housing_ratio > 100) {
+                        issues.push(`housing_ratio out of bounds: ${ratios.housing_ratio}`);
+                    }
+                }
+
+                if (ratios.debt_to_income !== undefined) {
+                    if (ratios.debt_to_income < 0 || ratios.debt_to_income > 100) {
+                        issues.push(`debt_to_income out of bounds: ${ratios.debt_to_income}`);
+                    }
+                }
+
+                if (state.loan?.ltv_ratio !== undefined) {
+                    if (state.loan.ltv_ratio < 0 || state.loan.ltv_ratio > 150) {
+                        issues.push(`ltv_ratio out of bounds: ${state.loan.ltv_ratio}`);
+                    }
+                }
+
+                if (issues.length > 0) {
+                    this.violations.push({
+                        invariant: 'ratio_bounds',
+                        severity: 'warn',
+                        message: `Ratio bounds violated: ${issues.join('; ')}`,
+                        details: { issues }
+                    });
+                }
+            }
+
+            // 3. Monotonic Rule Application
+            monotonicRules(rulesApplied, state) {
+                const duplicates = rulesApplied.filter((rule, index) => 
+                    rulesApplied.indexOf(rule) !== index
+                );
+
+                if (duplicates.length > 0) {
+                    this.violations.push({
+                        invariant: 'monotonic_rules',
+                        severity: 'warn',
+                        message: `Rules applied multiple times: ${[...new Set(duplicates)].join(', ')}`,
+                        details: { duplicates: [...new Set(duplicates)] }
+                    });
+                }
+            }
+
+            // 4. State Progress Direction
+            stateProgress(context) {
+                const { currentIteration, audit } = context;
+            
+                if (currentIteration > 1) {
+                    const stateChangeEntries = audit.filter(entry => 
+                        entry.message.includes('state changed') || 
+                        entry.message.includes('Applied:')
+                    ).length;
+
+                    if (stateChangeEntries === 0) {
+                        this.violations.push({
+                            invariant: 'state_progress',
+                            severity: 'warn', 
+                            message: `Iteration ${currentIteration} made no detectable state changes`,
+                            details: { iteration: currentIteration }
+                        });
+                    }
+                }
+            }
+
+            // 5. Approval Status Consistency
+            approvalConsistency(state) {
+                const { approval = {} } = state;
+
+                if (approval.status === 'approved') {
+                    const issues = [];
+
+                    if (!approval.can_approve) {
+                        issues.push('approved but can_approve is false');
+                    }
+
+                    if (!approval.final_decision) {
+                        issues.push('approved but final_decision is false');
+                    }
+
+                    if (approval.housing_ratio_status === 'fail') {
+                        issues.push('approved but housing_ratio_status is fail');
+                    }
+
+                    if (approval.dti_status === 'fail') {
+                        issues.push('approved but dti_status is fail');
+                    }
+
+                    if (approval.credit_status === 'insufficient') {
+                        issues.push('approved but credit_status is insufficient');
+                    }
+
+                    if (issues.length > 0) {
+                        this.violations.push({
+                            invariant: 'approval_consistency',
+                            severity: 'error',
+                            message: `Approval state inconsistent: ${issues.join('; ')}`,
+                            details: { issues }
+                        });
+                    }
+                }
+            }
+
+            // 6. Cash Flow Coherence
+            cashFlowCoherence(state) {
+                const { loan = {} } = state;
+
+                if (loan.down_payment !== undefined && loan.closing_costs !== undefined && 
+                    loan.total_cash_needed !== undefined) {
+                
+                    const expected = loan.down_payment + loan.closing_costs;
+                    const actual = loan.total_cash_needed;
+                    const tolerance = 1; // Allow for floating point rounding
+
+                    if (Math.abs(expected - actual) > tolerance) {
+                        this.violations.push({
+                            invariant: 'cash_flow_coherence',
+                            severity: 'error',
+                            message: `Cash flow mismatch: down_payment (${loan.down_payment}) + closing_costs (${loan.closing_costs}) = ${expected}, but total_cash_needed = ${actual}`,
+                            details: { expected, actual, difference: Math.abs(expected - actual) }
+                        });
+                    }
+                }
+            }
+
+            // 7. Rule Dependency Integrity
+            ruleDependencyIntegrity(state, rulesApplied) {
+                const dependencies = {
+                    'calculate_combined_debt': ['household.income_calculated'],
+                    'determine_credit_score': ['household.income_calculated'],
+                    'calculate_monthly_payment': ['loan.interest_rate'],
+                    'calculate_debt_to_income': ['loan.payment_calculated'],
+                    'check_housing_ratio_limit': ['ratios.housing_ratio'],
+                    'check_debt_to_income_limit': ['ratios.debt_to_income'],
+                    'determine_final_approval': [
+                        'approval.housing_ratio_checked', 
+                        'approval.dti_checked', 
+                        'approval.credit_checked'
+                    ]
+                };
+
+                for (const [rule, deps] of Object.entries(dependencies)) {
+                    if (rulesApplied.includes(rule)) {
+                        const missing = deps.filter(dep => {
+                            const value = this.getNestedValue(state, dep);
+                            return value === undefined || value === false || value === 0;
+                        });
+
+                        if (missing.length > 0) {
+                            this.violations.push({
+                                invariant: 'rule_dependency',
+                                severity: 'error',
+                                message: `Rule '${rule}' fired but dependencies missing: ${missing.join(', ')}`,
+                                details: { rule, missingDependencies: missing }
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 8. Audit Continuity
+            auditContinuity(audit) {
+                for (let i = 1; i < audit.length; i++) {
+                    const prev = new Date(audit[i-1].timestamp);
+                    const curr = new Date(audit[i].timestamp);
+
+                    if (curr < prev) {
+                        this.violations.push({
+                            invariant: 'audit_continuity',
+                            severity: 'error',
+                            message: `Audit timeline broken at entry ${i}: ${audit[i].timestamp} < ${audit[i-1].timestamp}`,
+                            details: { index: i, previous: audit[i-1].timestamp, current: audit[i].timestamp }
+                        });
+                        break;
+                    }
+                }
+            }
+
+            // 9. Error Visibility Guarantee
+            errorVisibility(audit, context) {
+                const errorEntries = audit.filter(entry => 
+                    entry.level === 'error' || entry.message.includes('Error:') || entry.message.includes('error')
+                );
+
+                // If we have any violations but no error entries, that's a problem
+                if (this.violations.some(v => v.severity === 'error') && errorEntries.length === 0) {
+                    this.violations.push({
+                        invariant: 'error_visibility',
+                        severity: 'error',
+                        message: 'Error violations detected but no error entries in audit trail',
+                        details: { violations: this.violations.filter(v => v.severity === 'error').map(v => v.invariant) }
+                    });
+                }
+            }
+
+            // Helper to get nested values
+            getNestedValue(obj, path) {
+                return path.split('.').reduce((current, key) => 
+                    current && current[key] !== undefined ? current[key] : undefined, obj);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // AXIS/KERN RULES ENGINE
+        // ═══════════════════════════════════════════════════════════════════
+        class AxisRulesEngine {
+            constructor() {
+                this.auditTrail = [];
+                this.conflictLog = [];
+                this.currentIteration = 0;
+                this.primitiveCallCounts = {
+                    EXPRESSION_EVALUATOR: 0,
+                    CONTEXT_SANITIZER: 0,
+                    CONDITION_EVALUATOR: 0,
+                    TEMPLATE_RESOLVER: 0,
+                    STATE_MUTATOR: 0,
+                    OBJECT_FLATTENER: 0,
+                    RULE_APPLICATOR: 0,
+                    ITERATION_MANAGER: 0
+                };
+            }
+            
+            validateInvariants(state, rulesApplied) {
+                const validator = new AxisInvariantValidator();
+                const violations = validator.validate(
+                    state, 
+                    this.auditTrail, 
+                    rulesApplied, 
+                    this.currentIteration
+                );
+
+                violations.forEach(violation => {
+                    this.log(`INVARIANT_VIOLATION: ${violation.invariant} - ${violation.message}`, 
+                        violation.severity);
+                });
+
+                return violations;
+            }
+
+            // PRIMITIVE 8: ITERATION_MANAGER
+            apply(inputData, rulesConfig) {
+                this.primitiveCallCounts.ITERATION_MANAGER++;
+                this.auditTrail = [];
+                this.conflictLog = [];
+                this.currentIteration = 0;
+                
+                let currentState = JSON.parse(JSON.stringify(inputData));
+                let iteration = 0;
+                let changed = true;
+                const maxIterations = rulesConfig.max_iterations || 10;
+
+                this.log('KERN: Starting execution pipeline');
+                this.log(`Input: ${currentState.applicant?.name || 'Unknown'}`);
+
+                const sortedRules = [...rulesConfig.rules].sort((a, b) => 
+                    (a.priority || 999) - (b.priority || 999)
+                );
+
+                while (changed && iteration < maxIterations) {
+                    changed = false;
+                    iteration++;
+                    this.currentIteration = iteration;
+                    this.log(`--- Tick ${iteration} ---`);
+                    
+                    const iterationChanges = new Map();
+                    const iterationRulesApplied = [];
+
+                    for (let rule of sortedRules) {
+                        const previousState = JSON.stringify(currentState);
+
+                        if (this.evaluateCondition(rule.if, currentState)) {
+                            this.log(`Applied: ${rule.name}`);
+                            iterationRulesApplied.push(rule.name);
+                            
+                            if (rule.then) {
+                                const stateChanges = this.applyTransformationsWithTracking(
+                                    currentState, 
+                                    rule.then, 
+                                    rule.name,
+                                    iterationChanges
+                                );
+                                
+                                currentState = stateChanges.newState;
+                                
+                                if (previousState !== JSON.stringify(currentState)) {
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // Validate invariants after each iteration
+                    const violations = this.validateInvariants(currentState, iterationRulesApplied);
+                    if (violations.length > 0) {
+                        this.log(`Found ${violations.length} invariant violations in iteration ${iteration}`, 'warn');
+                    }
+                }
+
+                this.log(`Completed in ${iteration} ticks`);
+
+                return {
+                    input: inputData,
+                    output: currentState,
+                    iterations: iteration,
+                    audit: this.auditTrail,
+                    conflicts: this.conflictLog,
+                    rulesApplied: this.getRulesApplied(),
+                    primitiveStats: this.primitiveCallCounts
+                };
+            }
+
+            // PRIMITIVE 7: RULE_APPLICATOR
+            applyTransformationsWithTracking(state, transformations, ruleName, iterationChanges) {
+                this.primitiveCallCounts.RULE_APPLICATOR++;
+                const newState = JSON.parse(JSON.stringify(state));
+                const fieldsChanged = [];
+
+                for (const [path, value] of Object.entries(transformations)) {
+                    const resolvedValue = this.resolveValue(value, newState);
+                    
+                    if (iterationChanges.has(path)) {
+                        const previousRule = iterationChanges.get(path);
+                        this.conflictLog.push({
+                            field: path,
+                            previousRule: previousRule,
+                            currentRule: ruleName,
+                            resolution: 'priority_override',
+                            iteration: this.currentIteration
+                        });
+                    }
+                    
+                    iterationChanges.set(path, ruleName);
+                    this.setNestedPath(newState, path, resolvedValue);
+                    fieldsChanged.push(path);
+                }
+
+                return { newState, fieldsChanged };
+            }
+
+            // PRIMITIVE 3: CONDITION_EVALUATOR
+            evaluateCondition(condition, context) {
+                this.primitiveCallCounts.CONDITION_EVALUATOR++;
+                if (!condition) return true;
+                try {
+                    if (typeof condition === "boolean") return condition;
+                    const safeContext = this.createSafeContext(context);
+                    this.primitiveCallCounts.EXPRESSION_EVALUATOR++;
+                    const result = safeEval(condition, safeContext, { maxLen: 300 });
+                    return !!result;
+                } catch (e) {
+                    this.log(`Condition evaluation blocked: ${String(condition)}`, "warn");
+                    return false;
+                }
+            }
+
+            // PRIMITIVE 4: TEMPLATE_RESOLVER (FIXED)
+            // drop-in replacement for resolveValue
+            resolveValue(template, context) {
+                this.primitiveCallCounts.TEMPLATE_RESOLVER++;
+                if (typeof template !== 'string') return template;
+
+                const single = template.match(/^\s*\{\{([\s\S]+)\}\}\s*$/);
+                const evalExpr = (expr) => {
+                    const expression = expr.trim();
+                    try {
+                        if (expression === 'now()')  return new Date().toISOString();
+                        if (expression === 'uuid()') return this.generateUUID();
+                        const safeContext = this.createSafeContext(context);
+                        const rawValue = safeEval(expression, safeContext, { maxLen: 400 });
+                        this.primitiveCallCounts.EXPRESSION_EVALUATOR++;
+                        return this.coerceByExpressionType(rawValue, expression);
+                    } catch (e) {
+                        this.log(`TEMPLATE BLOCKED: ${expression} - ${e.message}`, 'warn');
+                        return ''; // safe fallback for *interpolated* cases
+                        }
+                    };
+
+                // If the whole template is a single {{ expr }}, return the raw typed value
+                if (single) return evalExpr(single[1]);
+
+                // Otherwise do string interpolation and stringify each slot
+                return template.replace(/\{\{(.*?)\}\}/g, (_, expr) => String(evalExpr(expr)));
+            }
+
+
+            // Smart Type Coercion
+            coerceByExpressionType(value, expression) {
+                if (value === null || value === undefined) return '';
+                
+                // Detect expression intent
+                const exprType = this.detectExpressionIntent(expression);
+                
+                switch (exprType) {
+                    case 'math':
+                        return this.coerceToNumber(value);
+                        
+                    case 'boolean':
+                        return Boolean(value);
+                        
+                    case 'string_ternary':
+                        return String(value);
+                        
+                    case 'comparison':
+                        return value;
+                        
+                    default:
+                        return this.smartCoerce(value);
+                }
+            }
+
+            // Expression Intent Detection
+            detectExpressionIntent(expression) {
+                const cleanExpr = expression.replace(/\s+/g, '');
+                
+                // String ternary detection (like your approval rules)
+                if (/\?.*['"][^'"]*['"].*:.*['"][^'"]*['"]/.test(expression)) {
+                    return 'string_ternary';
+                }
+                
+                // Pure math detection
+                if (/[\+\-\*\/\%]/.test(cleanExpr) && !/['"]/.test(expression)) {
+                    return 'math';
+                }
+                
+                // Boolean/comparison detection
+                if (/(&&|\|\||===?|!==?|<=?|>=?|\b(?:true|false)\b)/.test(cleanExpr)) {
+                    return 'boolean';
+                }
+                
+                return 'preserve';
+            }
+
+            // Number Coercion (Safe)
+            coerceToNumber(value) {
+                if (typeof value === 'number') {
+                    return isFinite(value) ? value : 0;
+                }
+                
+                if (typeof value === 'string') {
+                    const num = parseFloat(value);
+                    return isFinite(num) ? num : 0;
+                }
+                
+                if (typeof value === 'boolean') {
+                    return value ? 1 : 0;
+                }
+                
+                return 0;
+            }
+
+            // Smart Coercion
+            smartCoerce(value) {
+                switch (typeof value) {
+                    case 'number':
+                        return isFinite(value) ? value : 0;
+                    case 'string':
+                        return value;
+                    case 'boolean':
+                        return value;
+                    case 'object':
+                        if (value === null) return '';
+                        if (Array.isArray(value)) return JSON.stringify(value);
+                        return JSON.stringify(value);
+                    default:
+                        return String(value);
+                }
+            }
+
+            // UUID Generator
+            generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            // PRIMITIVE 2: CONTEXT_SANITIZER
+            createSafeContext(context) {
+                this.primitiveCallCounts.CONTEXT_SANITIZER++;
+                const flattened = this.flattenObject(context);
+                const safe = Object.assign({}, flattened);
+                Object.keys(context || {}).forEach((k) => {
+                    safe[k] = context[k];
+                });
+                Object.keys(SAFE_GLOBALS).forEach(k => {
+                    if (!(k in safe)) safe[k] = SAFE_GLOBALS[k];
+                });
+                return safe;
+            }
+
+            // PRIMITIVE 6: OBJECT_FLATTENER
+            flattenObject(obj, prefix = '') {
+                this.primitiveCallCounts.OBJECT_FLATTENER++;
+                const flattened = {};
+                
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        const newKey = prefix ? `${prefix}.${key}` : key;
+                        
+                        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                            Object.assign(flattened, this.flattenObject(obj[key], newKey));
+                        } else {
+                            flattened[newKey.replace(/\./g, '_')] = obj[key];
+                        }
+                    }
+                }
+                
+                return flattened;
+            }
+
+            // PRIMITIVE 5: STATE_MUTATOR
+            setNestedPath(obj, path, value) {
+                this.primitiveCallCounts.STATE_MUTATOR++;
+                const keys = path.split('.');
+                let current = obj;
+
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                        current[keys[i]] = {};
+                    }
+                    current = current[keys[i]];
+                }
+                
+                const finalKey = keys[keys.length - 1];
+                current[finalKey] = value;
+            }
+
+            log(message, level = 'info') {
+                this.auditTrail.push({
+                    timestamp: new Date().toISOString(),
+                    level,
+                    message
+                });
+            }
+
+            getRulesApplied() {
+                return this.auditTrail
+                    .filter(entry => entry.message.startsWith('Applied:'))
+                    .map(entry => entry.message.replace('Applied: ', ''));
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // DEPENDENCY ANALYSIS MODULE
+        // ═══════════════════════════════════════════════════════════════════
+        class DependencyAnalyzer {
+            constructor(rulesConfig) {
+                this.rules = rulesConfig.rules;
+                this.dependencyGraph = {};
+                this.fieldToRules = {};
+                this.issues = [];
+            }
+            
+            analyze() {
+                this.buildDependencyGraph();
+                this.detectCircularDependencies();
+                this.findDeadRules();
+                this.findRedundantRules();
+                this.findMissingDependencies();
+                
+                return {
+                    graph: this.dependencyGraph,
+                    fieldToRules: this.fieldToRules,
+                    issues: this.issues,
+                    mermaid: this.generateMermaidDiagram()
+                };
+            }
+            
+            buildDependencyGraph() {
+                // Initialize graph
+                this.rules.forEach(rule => {
+                    this.dependencyGraph[rule.name] = {
+                        reads: new Set(),
+                        writes: new Set(),
+                        dependsOn: new Set(),
+                        dependencies: []
+                    };
+                });
+                
+                // Analyze each rule
+                this.rules.forEach(rule => {
+                    const ruleNode = this.dependencyGraph[rule.name];
+                    
+                    // Extract fields read from condition
+                    const conditionFields = this.extractFieldsFromExpression(rule.if);
+                    conditionFields.forEach(field => {
+                        ruleNode.reads.add(field);
+                        this.trackFieldToRule(field, rule.name, 'reads');
+                    });
+                    
+                    // Extract fields written from then clause
+                    if (rule.then) {
+                        Object.keys(rule.then).forEach(field => {
+                            ruleNode.writes.add(field);
+                            this.trackFieldToRule(field, rule.name, 'writes');
+                        });
+                    }
+                });
+                
+                // Build dependency edges
+                this.rules.forEach(rule => {
+                    const ruleNode = this.dependencyGraph[rule.name];
+                    
+                    // Find rules that write fields this rule reads
+                    ruleNode.reads.forEach(field => {
+                        this.rules.forEach(otherRule => {
+                            if (otherRule.name !== rule.name && 
+                                this.dependencyGraph[otherRule.name].writes.has(field)) {
+                                ruleNode.dependsOn.add(otherRule.name);
+                                ruleNode.dependencies.push({
+                                    rule: otherRule.name,
+                                    field: field,
+                                    type: 'reads'
+                                });
+                            }
+                        });
+                    });
+                });
+            }
+            
+            extractFieldsFromExpression(expression) {
+                if (!expression || typeof expression !== 'string') return [];
+                
+                // Simple field extraction - looks for patterns like field.path or field_path
+                const fieldPattern = /[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+/g;
+                const matches = expression.match(fieldPattern) || [];
+                
+                // Also extract simple field names that might be used in flattened context
+                const simplePattern = /\b(applicant|co_applicant|property|loan|insurance|ratios|approval|household)_[a-zA-Z0-9_]+\b/g;
+                const simpleMatches = expression.match(simplePattern) || [];
+                
+                // Combine and deduplicate
+                const allFields = [...matches, ...simpleMatches];
+                return [...new Set(allFields)];
+            }
+            
+            trackFieldToRule(field, ruleName, relationship) {
+                if (!this.fieldToRules[field]) {
+                    this.fieldToRules[field] = {
+                        readBy: new Set(),
+                        writtenBy: new Set()
+                    };
+                }
+                
+                if (relationship === 'reads') {
+                    this.fieldToRules[field].readBy.add(ruleName);
+                } else if (relationship === 'writes') {
+                    this.fieldToRules[field].writtenBy.add(ruleName);
+                }
+            }
+            
+            detectCircularDependencies() {
+                const visited = {};
+                const recursionStack = {};
+                const cycles = [];
+                
+                const dfs = (ruleName, path) => {
+                    if (!visited[ruleName]) {
+                        visited[ruleName] = true;
+                        recursionStack[ruleName] = true;
+                        
+                        this.dependencyGraph[ruleName].dependencies.forEach(dep => {
+                            if (!visited[dep.rule]) {
+                                dfs(dep.rule, [...path, dep.rule]);
+                            } else if (recursionStack[dep.rule]) {
+                                // Found a cycle
+                                const cycleStart = path.indexOf(dep.rule);
+                                if (cycleStart !== -1) {
+                                    const cycle = path.slice(cycleStart);
+                                    cycles.push([...cycle, dep.rule]);
+                                }
+                            }
+                        });
+                    }
+                    recursionStack[ruleName] = false;
+                };
+                
+                Object.keys(this.dependencyGraph).forEach(ruleName => {
+                    if (!visited[ruleName]) {
+                        dfs(ruleName, [ruleName]);
+                    }
+                });
+                
+                // Deduplicate cycles
+                const uniqueCycles = cycles.map(cycle => cycle.join(' → '))
+                    .filter((cycle, index, self) => self.indexOf(cycle) === index);
+                
+                uniqueCycles.forEach(cycle => {
+                    this.issues.push({
+                        type: 'circular_dependency',
+                        severity: 'critical',
+                        message: `Circular dependency detected: ${cycle}`,
+                        details: { cycle: cycle.split(' → ') }
+                    });
+                });
+            }
+            
+            findDeadRules() {
+                const hasOutput = new Set();
+                
+                // Mark rules that write to final output fields
+                const finalFields = [
+                    'approval.status', 'approval.final_decision', 'loan.processed'
+                ];
+                
+                finalFields.forEach(field => {
+                    if (this.fieldToRules[field] && this.fieldToRules[field].writtenBy) {
+                        this.fieldToRules[field].writtenBy.forEach(rule => {
+                            hasOutput.add(rule);
+                        });
+                    }
+                });
+                
+                // Propagate output through dependencies
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    Object.keys(this.dependencyGraph).forEach(ruleName => {
+                        if (hasOutput.has(ruleName)) {
+                            this.dependencyGraph[ruleName].dependencies.forEach(dep => {
+                                if (!hasOutput.has(dep.rule)) {
+                                    hasOutput.add(dep.rule);
+                                    changed = true;
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                // Find rules without output
+                Object.keys(this.dependencyGraph).forEach(ruleName => {
+                    if (!hasOutput.has(ruleName)) {
+                        this.issues.push({
+                            type: 'dead_rule',
+                            severity: 'warning',
+                            message: `Rule '${ruleName}' appears to be dead code (no path to final output)`,
+                            details: { rule: ruleName }
+                        });
+                    }
+                });
+            }
+            
+            findRedundantRules() {
+                // Look for rules that write the same fields
+                const fieldWriters = {};
+                
+                Object.keys(this.dependencyGraph).forEach(ruleName => {
+                    const ruleNode = this.dependencyGraph[ruleName];
+                    ruleNode.writes.forEach(field => {
+                        if (!fieldWriters[field]) {
+                            fieldWriters[field] = [];
+                        }
+                        fieldWriters[field].push(ruleName);
+                    });
+                });
+                
+                // Check for fields written by multiple rules
+                Object.keys(fieldWriters).forEach(field => {
+                    const writers = fieldWriters[field];
+                    if (writers.length > 1) {
+                        this.issues.push({
+                            type: 'redundant_writes',
+                            severity: 'info',
+                            message: `Field '${field}' is written by multiple rules: ${writers.join(', ')}`,
+                            details: { field, writers }
+                        });
+                    }
+                });
+            }
+            
+            findMissingDependencies() {
+                // Check for rules that read fields that might not be written by any rule
+                Object.keys(this.dependencyGraph).forEach(ruleName => {
+                    const ruleNode = this.dependencyGraph[ruleName];
+                    
+                    ruleNode.reads.forEach(field => {
+                        // Skip fields that are likely input data
+                        if (field.startsWith('applicant.') || field.startsWith('co_applicant.') || 
+                            field.startsWith('property.') || field.startsWith('loan.') ||
+                            field.includes('_annual') || field.includes('_monthly')) {
+                            return;
+                        }
+                        
+                        // Check if this field is written by any rule
+                        const writers = this.fieldToRules[field] ? 
+                            Array.from(this.fieldToRules[field].writtenBy) : [];
+                        
+                        if (writers.length === 0) {
+                            this.issues.push({
+                                type: 'missing_dependency',
+                                severity: 'warning',
+                                message: `Rule '${ruleName}' reads field '${field}' that is not written by any rule`,
+                                details: { rule: ruleName, field }
+                            });
+                        }
+                    });
+                });
+            }
+            
+            generateMermaidDiagram() {
+                let mermaid = "graph TD\n";
+                
+                // Add rules as nodes
+                this.rules.forEach(rule => {
+                    mermaid += `    ${rule.name.replace(/_/g, '')}[${rule.name}]\n`;
+                });
+                
+                // Add dependencies as edges
+                Object.keys(this.dependencyGraph).forEach(ruleName => {
+                    const ruleNode = this.dependencyGraph[ruleName];
+                    ruleNode.dependencies.forEach(dep => {
+                        mermaid += `    ${dep.rule.replace(/_/g, '')} --> ${ruleName.replace(/_/g, '')}\n`;
+                    });
+                });
+                
+                return mermaid;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // MORTGAGE RULES CONFIGURATION (AXIS SPEC)
+        // ═══════════════════════════════════════════════════════════════════
+        const mortgageRules = {
+            "max_iterations": 20,
+            "rules": [
+                {
+                    "name": "calculate_combined_income",
+                    "priority": 1,
+                    "if": "applicant.annual_income > 0 && loan.processed !== true",
+                    "then": {
+                        "household.combined_income": "{{applicant.annual_income + (co_applicant.exists ? co_applicant.annual_income : 0)}}",
+                        "household.primary_income": "{{applicant.annual_income}}",
+                        "household.income_calculated": true
+                    }
+                },
+                {
+                    "name": "calculate_combined_debt",
+                    "priority": 2,
+                    "if": "household.income_calculated == true && household.debt_calculated !== true",
+                    "then": {
+                        "household.combined_debt": "{{applicant.existing_debt + (co_applicant.exists ? co_applicant.existing_debt : 0)}}",
+                        "household.debt_calculated": true
+                    }
+                },
+                {
+                    "name": "determine_credit_score",
+                    "priority": 3,
+                    "if": "household.income_calculated == true && household.credit_determined !== true",
+                    "then": {
+                        "household.credit_score": "{{co_applicant.exists ? Math.min(applicant.credit_score, co_applicant.credit_score) : applicant.credit_score}}",
+                        "household.credit_determined": true
+                    }
+                },
+                {
+                    "name": "validate_down_payment",
+                    "priority": 4,
+                    "if": "loan.down_payment > 0 && loan.down_payment_validated !== true",
+                    "then": {
+                        "loan.down_payment_percent": "{{(loan.down_payment / property.purchase_price) * 100}}",
+                        "loan.ltv_ratio": "{{((property.purchase_price - loan.down_payment) / property.purchase_price) * 100}}",
+                        "loan.down_payment_validated": true
+                    }
+                },
+                {
+                    "name": "determine_interest_rate",
+                    "priority": 5,
+                    "if": "household.credit_score > 0 && loan.interest_rate == 0 && loan.rate_determined !== true",
+                    "then": {
+                        "loan.base_rate": 6.75,
+                        "loan.credit_adjustment": "{{household.credit_score >= 760 ? -0.5 : household.credit_score >= 720 ? -0.25 : household.credit_score >= 680 ? 0 : household.credit_score >= 640 ? 0.25 : 0.75}}",
+                        "loan.ltv_adjustment": "{{loan.ltv_ratio > 80 ? 0.25 : 0}}",
+                        "loan.interest_rate": "{{ Number(loan.base_rate + loan.credit_adjustment + loan.ltv_adjustment)}}",
+                        "loan.rate_determined": true
+                    }
+                },
+                {
+                    "name": "require_mip_or_pmi",
+                    "priority": 6,
+                    "if": "insurance.mip_calculated !== true",
+                    "then": {
+                        "insurance.pmi_required": true,
+                        "insurance.pmi_rate": "{{loan.type == 'fha' ? 0.85 : (loan.ltv_ratio > 80 ? 0.5 : 0)}}",
+                        "insurance.pmi_monthly": "{{(loan.requested_amount * (insurance.pmi_rate / 100)) / 12}}",
+                        "insurance.mip_calculated": true
+                    }
+                },
+                {
+                    "name": "calculate_monthly_payment",
+                    "priority": 7,
+                    "if": "loan.interest_rate > 0 && loan.monthly_payment === undefined",
+                    "then": {
+                        "loan.monthly_rate": "{{loan.interest_rate / 100 / 12}}",
+                        "loan.num_payments": "{{loan.term_years * 12}}",
+                        "loan.monthly_principal_interest": "{{ Number(loan.requested_amount * (loan.monthly_rate * Math.pow(1 + loan.monthly_rate, loan.num_payments)) / (Math.pow(1 + loan.monthly_rate, loan.num_payments) - 1))}}",
+                        "loan.monthly_payment": "{{Number(loan.monthly_principal_interest) + (Number(property.property_tax_annual / 12)) + (Number(insurance.homeowners_annual / 12)) + Number(property.hoa_monthly || 0) + Number(insurance.pmi_monthly || 0)}}",
+                        "loan.payment_calculated": true
+                    }
+                },
+                {
+                    "name": "calculate_debt_to_income",
+                    "priority": 8,
+                    "if": "loan.payment_calculated == true && ratios.calculated !== true",
+                    "then": {
+                        "ratios.monthly_income": "{{household.combined_income / 12}}",
+                        "ratios.monthly_debt": "{{household.combined_debt / 12}}",
+                        "ratios.housing_ratio": "{{(loan.monthly_payment / ratios.monthly_income) * 100}}",
+                        "ratios.debt_to_income": "{{ (Number(ratios.monthly_debt + Number(loan.monthly_payment)) / Number(ratios.monthly_income)) * 100}}",
+                        "ratios.calculated": true
+                    }
+                },
+                {
+                    "name": "check_housing_ratio_limit",
+                    "priority": 9,
+                    "if": "ratios.housing_ratio > 0 && approval.housing_ratio_checked !== true",
+                    "then": {
+                        "approval.housing_ratio_status": "{{loan.type == 'fha' ? (ratios.housing_ratio <= 31 ? 'pass' : ratios.housing_ratio <= 40 ? 'conditional' : 'fail') : (ratios.housing_ratio <= 28 ? 'pass' : ratios.housing_ratio <= 31 ? 'conditional' : 'fail')}}",
+                        "approval.housing_ratio_checked": true
+                    }
+                },
+                {
+                    "name": "check_debt_to_income_limit",
+                    "priority": 10,
+                    "if": "ratios.debt_to_income > 0 && approval.dti_checked !== true",
+                    "then": {
+                        "approval.dti_status": "{{loan.type == 'fha' ? (ratios.debt_to_income <= 43 ? 'pass' : ratios.debt_to_income <= 50 ? 'conditional' : 'fail') : (ratios.debt_to_income <= 36 ? 'pass' : ratios.debt_to_income <= 43 ? 'conditional' : 'fail')}}",
+                        "approval.dti_checked": true
+                    }
+                },
+                {
+                    "name": "check_credit_requirements",
+                    "priority": 11,
+                    "if": "household.credit_score > 0 && approval.credit_checked !== true",
+                    "then": {
+                        "approval.credit_status": "{{loan.type == 'fha' ? (household.credit_score >= 640 ? 'good' : household.credit_score >= 580 ? 'conditional' : 'insufficient') : (household.credit_score >= 740 ? 'excellent' : household.credit_score >= 680 ? 'good' : household.credit_score >= 620 ? 'conditional' : 'insufficient')}}",
+                        "approval.credit_checked": true
+                    }
+                },
+                {
+                    "name": "determine_final_approval",
+                    "priority": 12,
+                    "if": "approval.housing_ratio_checked == true && approval.dti_checked == true && approval.credit_checked == true && approval.final_decision !== true",
+                    "then": {
+                        "approval.can_approve": "{{approval.housing_ratio_status != 'fail' && approval.dti_status != 'fail' && approval.credit_status != 'insufficient'}}",
+                        "approval.status": "{{approval.can_approve ? (approval.housing_ratio_status == 'conditional' || approval.dti_status == 'conditional' || approval.credit_status == 'conditional' ? 'conditional_approval' : 'approved') : 'denied'}}",
+                        "approval.final_decision": true
+                    }
+                },
+                {
+                    "name": "calculate_closing_costs",
+                    "priority": 13,
+                    "if": "approval.status == 'approved' && loan.closing_costs === undefined",
+                    "then": {
+                        "loan.origination_fee": "{{loan.requested_amount * 0.005}}",
+                        "loan.appraisal_fee": 600,
+                        "loan.title_insurance": "{{property.purchase_price * 0.003}}",
+                        "loan.closing_costs": "{{loan.origination_fee + loan.appraisal_fee + loan.title_insurance + 2500}}",
+                        "loan.total_cash_needed": "{{loan.down_payment + loan.closing_costs}}"
+                    }
+                },
+                {
+                    "name": "finalize_loan_processing",
+                    "priority": 14,
+                    "if": "approval.final_decision == true && loan.processed !== true",
+                    "then": {
+                        "loan.processed": true,
+                        "loan.application_date": "{{now()}}",
+                        "loan.reference_number": "{{uuid()}}",
+                        "loan.next_step": "{{approval.status == 'approved' ? 'Schedule appraisal and title search' : approval.status == 'conditional_approval' ? 'Submit additional documentation' : 'Consider alternative financing options'}}"
+                    }
+                }
+            ]
+        };
+
+        // ═══════════════════════════════════════════════════════════════════
+        // UI CONTROLLER
+        // ═══════════════════════════════════════════════════════════════════
+        const engine = new AxisRulesEngine();
+        let lastResult = null;
+
+        function analyzeDependencies() {
+            const analyzer = new DependencyAnalyzer(mortgageRules);
+            const analysis = analyzer.analyze();
+            
+            displayDependencyAnalysis(analysis);
+        }
+
+        function displayDependencyAnalysis(analysis) {
+            const { graph, issues, mermaid } = analysis;
+            
+            let graphHtml = '<div class="dependency-graph">';
+            
+            // Display rules and their dependencies
+            Object.keys(graph).forEach(ruleName => {
+                const ruleNode = graph[ruleName];
+                graphHtml += `<div class="graph-node node-rule">${ruleName}</div>`;
+                
+                if (ruleNode.dependencies.length > 0) {
+                    ruleNode.dependencies.forEach(dep => {
+                        graphHtml += `<div class="edge edge-read">→ depends on ${dep.rule} (via ${dep.field})</div>`;
+                    });
+                } else {
+                    graphHtml += `<div class="edge">→ no dependencies</div>`;
+                }
+                
+                graphHtml += '<br>';
+            });
+            
+            graphHtml += '</div>';
+            
+            // Display issues
+            let issuesHtml = '';
+            if (issues.length > 0) {
+                issuesHtml = '<div class="analysis-issues">';
+                
+                issues.forEach(issue => {
+                    const issueClass = `issue-item issue-${issue.severity === 'critical' ? 'critical' : 
+                                      issue.severity === 'warning' ? 'warning' : 'info'}`;
+                    
+                    issuesHtml += `
+                        <div class="${issueClass}">
+                            <strong>${issue.type.toUpperCase()}:</strong> ${issue.message}
+                        </div>
+                    `;
+                });
+                
+                issuesHtml += '</div>';
+            } else {
+                issuesHtml = `
+                    <div class="issue-item issue-info">
+                        <strong>ANALYSIS COMPLETE:</strong> No critical issues detected in rule dependencies
+                    </div>
+                `;
+            }
+            
+            // Display Mermaid diagram
+            const mermaidHtml = `
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 8px;">DEPENDENCY GRAPH (Mermaid)</div>
+                    <div style="font-size: 10px; color: #b0bec5; margin-bottom: 8px;">
+                        Copy this code to <a href="https://mermaid.live" target="_blank">mermaid.live</a> to visualize
+                    </div>
+                    <pre style="background: #0a0f1c; padding: 12px; border-radius: 4px; font-size: 9px; overflow-x: auto; color: #b0bec5;">${mermaid}</pre>
+                </div>
+            `;
+            
+            document.getElementById('output').innerHTML = `
+                <div class="panel-title">🔗 Rule Dependency Analysis</div>
+                ${graphHtml}
+                ${issuesHtml}
+                ${mermaidHtml}
+            `;
+        }
+
+        function processLoan() {
+            try {
+                const inputData = JSON.parse(document.getElementById('inputData').value);
+                const result = engine.apply(inputData, mortgageRules);
+                lastResult = result;
+                
+                displayResults(result);
+                updateKernelStatus(result);
+            } catch (e) {
+                document.getElementById('output').innerHTML = `
+                    <div class="error-box">
+                        <strong>Processing Error</strong><br>
+                        ${e.message}
+                    </div>
+                `;
+            }
+        }
+
+        function displayResults(result) {
+            const output = result.output;
+            const approval = output.approval || {};
+            const loan = output.loan || {};
+            const ratios = output.ratios || {};
+            const household = output.household || {};
+            
+            // Check for violations
+            const violations = result.audit.filter(entry => 
+                entry.message.includes('INVARIANT_VIOLATION')
+            );
+            
+            let statusClass = 'status-denied';
+            let statusText = '❌ Loan Denied';
+            
+            if (approval.status === 'approved') {
+                statusClass = 'status-approved';
+                statusText = '✅ Loan Approved';
+            } else if (approval.status === 'conditional_approval') {
+                statusClass = 'status-conditional';
+                statusText = '⚠️ Conditional Approval';
+            }
+            
+            const formatCurrency = (amount) => {
+                const num = Number(amount);
+                return isFinite(num)
+                    ? new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD',
+                        maximumFractionDigits: 0
+                    }).format(num)
+                    : '$0';
+            };
+            
+            const formatPercent = (ratios) => {
+                const num = Number(ratios);
+                return isFinite(num) ? `${num.toFixed(2)}%` : '0.00%';
+            };
+            
+            let violationsHtml = '';
+            if (violations.length > 0) {
+                violationsHtml = violations.map(v => {
+                    const boxClass = v.level === 'error' ? 'error-box' : 'warn-box';
+                    return `
+                        <div class="${boxClass}" style="margin-top: 12px; font-size: 11px;">
+                            <strong>${v.level.toUpperCase()}:</strong> ${v.message}
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('output').innerHTML = `
+                <div class="${statusClass}">
+                    ${statusText}
+                </div>
+                
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 8px;">LOAN DETAILS</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Amount:</span>
+                        <span class="metric-value">${formatCurrency(loan.requested_amount)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Interest Rate:</span>
+                        <span class="metric-value">${formatPercent(loan.interest_rate)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Monthly Payment:</span>
+                        <span class="metric-value">${formatCurrency(loan.monthly_payment)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Down Payment:</span>
+                        <span class="metric-value">${formatCurrency(loan.down_payment)}</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 8px;">RISK METRICS</div>
+                    <div class="metric-row">
+                        <span class="metric-label">LTV Ratio:</span>
+                        <span class="metric-value">${formatPercent(loan.ltv_ratio)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Housing Ratio:</span>
+                        <span class="metric-value">${formatPercent(ratios.housing_ratio)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Debt-to-Income:</span>
+                        <span class="metric-value">${formatPercent(ratios.debt_to_income)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Credit Score:</span>
+                        <span class="metric-value">${household.credit_score || 'N/A'}</span>
+                    </div>
+                </div>
+                
+                ${loan.closing_costs ? `
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 8px;">CLOSING COSTS</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Total Closing:</span>
+                        <span class="metric-value">${formatCurrency(loan.closing_costs)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Cash Needed:</span>
+                        <span class="metric-value">${formatCurrency(loan.total_cash_needed)}</span>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 8px;">EXECUTION STATS</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Rules Applied:</span>
+                        <span class="metric-value">${result.rulesApplied.length}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Iterations:</span>
+                        <span class="metric-value">${result.iterations}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Reference:</span>
+                        <span class="metric-value">${loan.reference_number ? loan.reference_number.substring(0, 8) : 'N/A'}</span>
+                    </div>
+                </div>
+                
+                ${violationsHtml}
+            `;
+        }
+
+        function updateKernelStatus(result) {
+            const stats = result.primitiveStats;
+            document.getElementById('kernelStatus').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-row">
+                        <span class="metric-label">Engine State:</span>
+                        <span class="metric-value" style="color: #4caf50;">ACTIVE</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Rules Loaded:</span>
+                        <span class="metric-value">14</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Iterations:</span>
+                        <span class="metric-value">${result.iterations}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Conflicts:</span>
+                        <span class="metric-value">${result.conflicts.length}</span>
+                    </div>
+                </div>
+                
+                <div class="panel-title" style="margin-top: 20px;">🔧 Primitive Call Counts</div>
+                <div class="metric-card">
+                    <div style="font-size: 10px; line-height: 1.8;">
+                        <div class="metric-row">
+                            <span class="metric-label">EXPRESSION_EVALUATOR:</span>
+                            <span class="metric-value">${stats.EXPRESSION_EVALUATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">CONTEXT_SANITIZER:</span>
+                            <span class="metric-value">${stats.CONTEXT_SANITIZER}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">CONDITION_EVALUATOR:</span>
+                            <span class="metric-value">${stats.CONDITION_EVALUATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">TEMPLATE_RESOLVER:</span>
+                            <span class="metric-value">${stats.TEMPLATE_RESOLVER}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">STATE_MUTATOR:</span>
+                            <span class="metric-value">${stats.STATE_MUTATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">OBJECT_FLATTENER:</span>
+                            <span class="metric-value">${stats.OBJECT_FLATTENER}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">RULE_APPLICATOR:</span>
+                            <span class="metric-value">${stats.RULE_APPLICATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">ITERATION_MANAGER:</span>
+                            <span class="metric-value">${stats.ITERATION_MANAGER}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showAuditTrail() {
+            if (!lastResult || lastResult.audit.length === 0) {
+                document.getElementById('output').innerHTML = `
+                    <div class="metric-card">
+                        <div style="text-align: center; padding: 20px; color: #90caf9;">
+                            <p style="font-size: 13px;">No audit trail available</p>
+                            <p style="font-size: 11px; opacity: 0.7; margin-top: 8px;">Execute a loan first</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const auditHtml = lastResult.audit.map(entry => {
+                let entryClass = 'audit-entry';
+                if (entry.level === 'error') entryClass += ' audit-error';
+                if (entry.level === 'warn') entryClass += ' audit-warn';
+        
+                return `
+                    <div class="${entryClass}">
+                        <span class="audit-timestamp">[${entry.timestamp.split('T')[1].split('.')[0]}]</span>
+                        ${entry.message}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('output').innerHTML = `
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>AUDIT TRAIL (${lastResult.audit.length} entries)</span>
+                        <span style="font-size: 10px; color: #90caf9;">Scroll to see all logs</span>
+                    </div>
+                    <div class="audit-log" style="max-height: 500px; overflow-y: auto;">
+                        ${auditHtml}
+                    </div>
+                </div>
+        
+                <div class="metric-card">
+                    <div style="font-size: 11px; color: #64b5f6; margin-bottom: 8px;">RULES APPLIED (${lastResult.rulesApplied.length})</div>
+                    <div style="font-size: 10px; line-height: 1.6; color: #b0bec5;">
+                        ${lastResult.rulesApplied.map(r => `<div>→ ${r}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadSample(type) {
+            if (type === 'good') {
+                document.getElementById('inputData').value = JSON.stringify({
+                    "applicant": {
+                        "name": "Michael Rodriguez",
+                        "age": 28,
+                        "employment_status": "full_time",
+                        "annual_income": 145000,
+                        "employment_years": 6,
+                        "credit_score": 780,
+                        "existing_debt": 25000,
+                        "savings": 220000,
+                        "first_time_buyer": true
+                    },
+                    "co_applicant": {
+                        "exists": true,
+                        "annual_income": 125000,
+                        "employment_years": 8,
+                        "credit_score": 760,
+                        "existing_debt": 15000
+                    },
+                    "property": {
+                        "purchase_price": 750000,
+                        "property_type": "single_family",
+                        "location_state": "TX",
+                        "property_tax_annual": 9375,
+                        "hoa_monthly": 180
+                    },
+                    "loan": {
+                        "requested_amount": 600000,
+                        "down_payment": 150000,
+                        "term_years": 30,
+                        "type": "conventional",
+                        "interest_rate": 0,
+                        "processed": false
+                    },
+                    "insurance": {
+                        "homeowners_annual": 3200,
+                        "pmi_required": false,
+                        "pmi_monthly": 0
+                    },
+                    "ratios": {
+                        "calculated": false
+                    },
+                    "approval": {
+                        "status": "pending",
+                        "conditions": [],
+                        "final_decision": false
+                    }
+                }, null, 2);
+            } else if (type === 'poor') {
+                document.getElementById('inputData').value = JSON.stringify({
+                    "applicant": {
+                        "name": "Jennifer Walsh",
+                        "age": 24,
+                        "employment_status": "contract",
+                        "annual_income": 65000,
+                        "employment_years": 1.5,
+                        "credit_score": 590,
+                        "existing_debt": 85000,
+                        "savings": 45000,
+                        "first_time_buyer": true
+                    },
+                    "co_applicant": {
+                        "exists": false
+                    },
+                    "property": {
+                        "purchase_price": 450000,
+                        "property_type": "condo",
+                        "location_state": "CA",
+                        "property_tax_annual": 5625,
+                        "hoa_monthly": 425
+                    },
+                    "loan": {
+                        "requested_amount": 427500,
+                        "down_payment": 22500,
+                        "term_years": 30,
+                        "type": "fha",
+                        "interest_rate": 0,
+                        "processed": false
+                    },
+                    "insurance": {
+                        "homeowners_annual": 2800,
+                        "pmi_required": false,
+                        "pmi_monthly": 0
+                    },
+                    "ratios": {
+                        "calculated": false
+                    },
+                    "approval": {
+                        "status": "pending",
+                        "conditions": [],
+                        "final_decision": false
+                    }
+                }, null, 2);
+            }
+        }
+    </script>
+</body>
+</html>

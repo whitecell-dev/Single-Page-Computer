@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Microfinance Application State",
+  "microfinanceState": {
+    "type": "object",
+    "required": ["solicitante", "prestamo"],
+    "properties": {
+      "solicitante": {
+        "type": "object",
+        "required": ["nombre", "ingresos_mensuales_estimados"],
+        "properties": {
+          "nombre": { "type": "string" },
+          "edad": { "type": "integer", "minimum": 18, "maximum": 80 },
+          "empleo_formal": { "type": "boolean" },
+          "ingresos_mensuales_estimados": { "type": "number", "minimum": 0 },
+          "ventas_mensuales": { "type": "number", "minimum": 0 },
+          "años_negocio": { "type": "number", "minimum": 0 },
+          "puntaje_credicio": { "type": "integer", "minimum": 0, "maximum": 850 },
+          "referencias_comunitarias": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nombre": { "type": "string" },
+                "confiable": { "type": "boolean" },
+                "años_conocido": { "type": "number" }
+              }
+            }
+          },
+          "grupo_solidario": {
+            "type": "object", 
+            "properties": {
+              "existe": { "type": "boolean" },
+              "nombre_grupo": { "type": "string" },
+              "miembros": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      },
+      "prestamo": {
+        "type": "object", 
+        "required": ["monto", "plazo_meses"],
+        "properties": {
+          "monto": { "type": "number", "minimum": 1000, "maximum": 100000 },
+          "plazo_meses": { 
+            "type": "integer", 
+            "enum": [6, 12, 18, 24, 36]
+          },
+          "proposito": {
+            "type": "string",
+            "enum": ["negocio", "agricultura", "educacion", "vivienda", "salud", "otros"]
+          },
+          "procesado": { "type": "boolean", "default": false },
+          "tasa_interes": { "type": "number", "minimum": 0, "maximum": 100 }
+        }
+      },
+      "calculo": {
+        "type": "object",
+        "properties": {
+          "ingresos_completado": { "type": "boolean" },
+          "referencias_completado": { "type": "boolean" },
+          "grupo_completado": { "type": "boolean" },
+          "capacidad_completado": { "type": "boolean" }
+        }
+      },
+      "puntaje": {
+        "type": "object", 
+        "properties": {
+          "comunitario": { "type": "number", "minimum": 0, "maximum": 1 },
+          "credito_efectivo": { "type": "number", "minimum": 0, "maximum": 850 }
+        }
+      },
+      "pago": {
+        "type": "object",
+        "properties": {
+          "cuota_mensual_estimada": { "type": "number", "minimum": 0 },
+          "ratio_pago_ingresos": { "type": "number", "minimum": 0, "maximum": 2 }
+        }
+      },
+      "aprobacion": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string", 
+            "enum": ["pendiente", "aprobado", "aprobado_condicional", "rechazado"]
+          },
+          "puede_aprobar": { "type": "boolean" },
+          "monto_aprobado": { "type": "number", "minimum": 0 },
+          "garantia_grupal": { "type": "boolean" },
+          "decision_final": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

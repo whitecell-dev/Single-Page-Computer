@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Microfinance Rules - Honduras",
+  "microfinanceRules": {
+    "max_iterations": 12,
+    "rules": [
+      {
+        "name": "evaluar_ingresos_informales",
+        "priority": 1,
+        "category": "ingresos",
+        "description": "Calcular ingresos para trabajadores informales",
+        "if": "solicitante.empleo_formal == false && solicitante.ingresos_mensuales_estimados == null",
+        "then": {
+          "solicitante.ingresos_mensuales_estimados": "{{ solicitante.ventas_mensuales * 0.6 }}",
+          "solicitante.estabilidad_laboral": "{{ solicitante.años_negocio > 2 ? 0.8 : solicitante.años_negocio > 1 ? 0.6 : 0.4 }}",
+          "calculo.ingresos_completado": true
+        }
+      },
+      {
+        "name": "evaluar_referencias_comunitarias", 
+        "priority": 2,
+        "category": "credito",
+        "description": "Usar referencias comunitarias como historial crediticio",
+        "if": "solicitante.referencias_comunitarias && solicitante.referencias_comunitarias.length >= 2",
+        "then": {
+          "puntaje.comunitario": "{{ solicitante.referencias_comunitarias.filter(ref => ref.confiable).length / solicitante.referencias_comunitarias.length }}",
+          "puntaje.credito_efectivo": "{{ Math.max(solicitante.puntaje_credicio || 0, puntaje.comunitario * 700) }}",
+          "calculo.referencias_completado": true
+        }
+      },
+      {
+        "name": "evaluar_grupo_solidario",
+        "priority": 3, 
+        "category": "garantia",
+        "description": "Aprovechar garantía solidaria de grupos",
+        "if": "solicitante.grupo_solidario && solicitante.grupo_solidario.existe == true",
+        "then": {
+          "aprobacion.garantia_grupal": true,
+          "tasa.interes": "{{ 0.18 * 0.9 }}",
+          "limite.prestamo": "{{ 50000 }}",
+          "calculo.grupo_completado": true
+        }
+      },
+      {
+        "name": "evaluar_capacidad_pago",
+        "priority": 4,
+        "category": "pagos", 
+        "description": "Calcular capacidad de pago basado en ingresos",
+        "if": "calculo.ingresos_completado == true && prestamo.monto > 0",
+        "then": {
+          "pago.cuota_mensual_estimada": "{{ (prestamo.monto * (tasa.interes || 0.20) / 12) + (prestamo.monto / prestamo.plazo_meses) }}",
+          "ratio.pago_ingresos": "{{ pago.cuota_mensual_estimada / solicitante.ingresos_mensuales_estimados }}",
+          "calculo.capacidad_completado": true
+        }
+      },
+      {
+        "name": "tomar_decision_credito",
+        "priority": 5,
+        "category": "aprobacion",
+        "description": "Decisión final de aprobación",
+        "if": "calculo.capacidad_completado == true && calculo.referencias_completado == true",
+        "then": {
+          "aprobacion.puede_aprobar": "{{ ratio.pago_ingresos <= 0.4 && puntaje.credito_efectivo >= 500 }}",
+          "aprobacion.estado": "{{ aprobacion.puede_aprobar ? (ratio.pago_ingresos <= 0.3 ? 'aprobado' : 'aprobado_condicional') : 'rechazado' }}",
+          "aprobacion.monto_aprobado": "{{ aprobacion.puede_aprobar ? prestamo.monto : 0 }}",
+          "aprobacion.decision_final": true,
+          "prestamo.procesado": true,
+          "prestamo.fecha_solicitud": "{{ now() }}",
+          "prestamo.numero_referencia": "{{ uuid() }}"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Microfinance Execution Config",
+  "execution": {
+    "mode": "iterative",
+    "maxIterations": 12,
+    "timeoutMs": 5000,
+    "enableAudit": true,
+    "enableInvariants": true,
+    "language": "es",
+    "currency": "HNL",
+    "offlineMode": true
+  }
+}

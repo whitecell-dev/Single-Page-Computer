@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXIS/KERN Microfinance - Honduras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a5276 0%, #229954 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2c3e50;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2e86c1 0%, #28b463 100%);
+            color: white;
+            padding: 25px 30px;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header .subtitle {
+            font-size: 0.95em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            min-height: 700px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            padding: 25px;
+            border-right: 1px solid #e8e8e8;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+        
+        .panel:last-child {
+            border-right: none;
+        }
+        
+        .panel-title {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #2e86c1;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8e8e8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 0.8em;
+            color: #566573;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #f8f9f9;
+            border: 2px solid #e8e8e8;
+            border-radius: 6px;
+            color: #2c3e50;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2e86c1;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(46, 134, 193, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+        }
+        
+        .checkbox-group label {
+            font-size: 0.85em;
+            margin: 0;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #2e86c1 0%, #28b463 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(46, 134, 193, 0.3);
+        }
+        
+        button.secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            font-size: 12px;
+        }
+        
+        .status-badge {
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 1.1em;
+        }
+        
+        .status-approved {
+            background: linear-gradient(135deg, #28b463 0%, #229954 100%);
+            color: white;
+            border: 2px solid #1d8348;
+        }
+        
+        .status-conditional {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: 2px solid #d68910;
+        }
+        
+        .status-denied {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: 2px solid #a93226;
+        }
+        
+        .metric-card {
+            background: #f8f9f9;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        
+        .metric-label {
+            color: #566573;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            color: #2c3e50;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .currency {
+            color: #28b463;
+            font-weight: 700;
+        }
+        
+        .audit-log {
+            background: #f8f9f9;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        
+        .audit-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid #e8e8e8;
+            color: #566573;
+        }
+        
+        .audit-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .audit-error {
+            color: #e74c3c !important;
+            border-left: 3px solid #c62828;
+            padding-left: 8px;
+            background: rgba(231, 76, 60, 0.1);
+            margin: 2px 0;
+        }
+        
+        .audit-warn {
+            color: #f39c12 !important;
+            border-left: 3px solid #ff9800;
+            padding-left: 8px;
+            background: rgba(243, 156, 18, 0.1);
+            margin: 2px 0;
+        }
+        
+        .section-title {
+            font-size: 0.85em;
+            color: #2e86c1;
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .reference-item {
+            background: #e8f6f3;
+            border: 1px solid #a3e4d7;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .reference-item input {
+            font-size: 12px;
+            padding: 8px;
+        }
+        
+        .offline-badge {
+            background: #28b463;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-left: 10px;
+            font-weight: 700;
+        }
+        
+        .error-box {
+            background: rgba(231, 76, 60, 0.15);
+            border: 2px solid #e74c3c;
+            color: #c0392b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .warn-box {
+            background: rgba(243, 156, 18, 0.15);
+            border: 2px solid #f39c12;
+            color: #d68910;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .security-badge {
+            display: inline-block;
+            background: #28b463;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f8f9f9;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #95a5a6;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 AXIS/KERN Microfinance Honduras</h1>
+            <div class="subtitle">Motor de evaluación de crédito • 8 primitivas • Validación de invariantes • Modo offline seguro</div>
+        </div>
+        
+        <div class="main-grid">
+            <!-- INPUT PANEL -->
+            <div class="panel">
+                <div class="panel-title">
+                    📋 Solicitud de Crédito
+                    <span class="offline-badge">OFFLINE</span>
+                    <span class="security-badge">HARDENED</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Información del Solicitante</label>
+                    <div class="form-row">
+                        <input type="text" id="nombre" placeholder="Nombre completo" value="María González">
+                        <input type="number" id="edad" placeholder="Edad" value="32" min="18" max="80">
+                    </div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="empleo_formal">
+                    <label for="empleo_formal">¿Tiene empleo formal?</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="primer_prestamo" checked>
+                    <label for="primer_prestamo">¿Es su primer préstamo?</label>
+                </div>
+                
+                <div class="form-group">
+                    <label>Negocio/Actividad Económica</label>
+                    <div class="form-row">
+                        <input type="number" id="ventas_mensuales" placeholder="Ventas mensuales (HNL)" value="25000">
+                        <input type="number" id="años_negocio" placeholder="Años en el negocio" value="3" step="0.5" min="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Solicitud de Préstamo</label>
+                    <div class="form-row">
+                        <input type="number" id="monto_prestamo" placeholder="Monto (HNL)" value="8000" min="1000" max="100000">
+                        <select id="plazo_meses">
+                            <option value="6">6 meses</option>
+                            <option value="12" selected>12 meses</option>
+                            <option value="18">18 meses</option>
+                            <option value="24">24 meses</option>
+                            <option value="36">36 meses</option>
+                        </select>
+                    </div>
+                    <select id="proposito" style="margin-top: 10px;">
+                        <option value="negocio" selected>Capital de trabajo</option>
+                        <option value="agricultura">Agricultura</option>
+                        <option value="educacion">Educación</option>
+                        <option value="vivienda">Mejora de vivienda</option>
+                        <option value="salud">Gastos de salud</option>
+                        <option value="otros">Otros</option>
+                    </select>
+                </div>
+                
+                <div class="section-title">Referencias Comunitarias</div>
+                <div id="referencias-container">
+                    <div class="reference-item">
+                        <input type="text" placeholder="Nombre referencia" value="Juan Pérez" style="margin-bottom: 5px;">
+                        <div class="checkbox-group" style="margin: 5px 0;">
+                            <input type="checkbox" checked>
+                            <label style="font-size: 0.8em;">Persona confiable</label>
+                        </div>
+                        <input type="number" placeholder="Años de conocerlo" value="5" min="1" style="font-size: 0.8em;">
+                    </div>
+                    <div class="reference-item">
+                        <input type="text" placeholder="Nombre referencia" value="Rosa García" style="margin-bottom: 5px;">
+                        <div class="checkbox-group" style="margin: 5px 0;">
+                            <input type="checkbox" checked>
+                            <label style="font-size: 0.8em;">Persona confiable</label>
+                        </div>
+                        <input type="number" placeholder="Años de conocerlo" value="3" min="1" style="font-size: 0.8em;">
+                    </div>
+                </div>
+                <button type="button" onclick="agregarReferencia()" class="secondary" style="margin-top: 10px;">+ Agregar Referencia</button>
+                
+                <div class="checkbox-group" style="margin-top: 16px;">
+                    <input type="checkbox" id="grupo_solidario">
+                    <label for="grupo_solidario">¿Pertenece a un grupo solidario?</label>
+                </div>
+                
+                <div class="button-row">
+                    <button onclick="evaluarCredito()">✅ Evaluar</button>
+                    <button onclick="cargarEjemplo('aprobado')" class="secondary">📊 Bueno</button>
+                    <button onclick="cargarEjemplo('rechazado')" class="secondary">📈 Riesgoso</button>
+                </div>
+            </div>
+            
+            <!-- OUTPUT PANEL -->
+            <div class="panel">
+                <div class="panel-title">📤 Resultados de Evaluación</div>
+                <div id="output">
+                    <div class="metric-card">
+                        <div style="text-align: center; padding: 30px 20px; color: #7f8c8d;">
+                            <div style="font-size: 3em; margin-bottom: 16px;">🏦</div>
+                            <p style="font-size: 1.1em; margin-bottom: 8px;">Sistema Listo</p>
+                            <p style="font-size: 0.85em; opacity: 0.7;">Complete la solicitud y haga clic en "Evaluar"</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title" style="margin-top: 20px;">Bitácora de Procesamiento</div>
+                <div id="audit" class="audit-log">
+                    <div class="audit-entry">✓ Sistema inicializado - Modo offline activo</div>
+                    <div class="audit-entry">✓ Validador de invariantes cargado</div>
+                    <div class="audit-entry">✓ Esperando solicitud de crédito...</div>
+                </div>
+            </div>
+            
+            <!-- KERNEL STATUS PANEL -->
+            <div class="panel">
+                <div class="panel-title">⚙️ Estado del Kernel</div>
+                <div id="kernelStatus">
+                    <div class="metric-card">
+                        <div class="metric-row">
+                            <span class="metric-label">Motor:</span>
+                            <span class="metric-value">IDLE</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Reglas Cargadas:</span>
+                            <span class="metric-value">5</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Primitivas:</span>
+                            <span class="metric-value">8</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Invariantes:</span>
+                            <span class="metric-value">5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="section-title">🧩 Primitivas Activas</div>
+                    <div class="metric-card">
+                        <div style="font-size: 10px; line-height: 1.8; color: #566573;">
+                            <div>✓ EXPRESSION_EVALUATOR</div>
+                            <div>✓ CONTEXT_SANITIZER</div>
+                            <div>✓ CONDITION_EVALUATOR</div>
+                            <div>✓ TEMPLATE_RESOLVER</div>
+                            <div>✓ STATE_MUTATOR</div>
+                            <div>✓ OBJECT_FLATTENER</div>
+                            <div>✓ RULE_APPLICATOR</div>
+                            <div>✓ ITERATION_MANAGER</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════
+        // PRIMITIVE 1: EXPRESSION_EVALUATOR (Hardened for Microfinance)
+        // ═══════════════════════════════════════════════════════════
+        const MICROFINANCE_BLACKLIST = [
+            "process", "require", "global", "window", "this", "eval", "Function",
+            "fetch", "XMLHttpRequest", "postMessage", "import", "await", "constructor",
+            "prototype", "setTimeout", "setInterval", "while", "for", "do", "class",
+            "localStorage", "sessionStorage", "indexedDB", "WebSocket", "importScripts",
+            "FileReader", "document", "self", "navigator", "location", "history"
+        ];
+        
+        const SAFE_GLOBALS_HARDENED = {
+            Math: Math,
+            parseInt: parseInt,
+            parseFloat: parseFloat,
+            Number: Number,
+            Boolean: Boolean,
+            String: String
+        };
+        
+        const ALLOWED_CHARS = /^[\w\d\s\.\_\+\-\*\/\%\!\=\<\>\?\:\&\|\(\)\,\[\]\'"]+$/;
+        
+        function microfinanceSafeEval(expression, context = {}, opts = {}) {
+            const maxLen = opts.maxLen || 200;
+            if (typeof expression !== "string") throw new Error("Expression must be string");
+            if (expression.length > maxLen) throw new Error("Expression too long");
+            
+            // Enhanced blacklist checking
+            for (const bad of MICROFINANCE_BLACKLIST) {
+                if (/^[a-z]+$/i.test(bad)) {
+                    const re = new RegExp(`\\b${bad}\\b`, 'i');
+                    if (re.test(expression)) throw new Error(`Blocked identifier: ${bad}`);
+                } else {
+                    if (expression.includes(bad)) throw new Error(`Blocked pattern: ${bad}`);
+                }
+            }
+            
+            // New security checks for determinism
+            if (!ALLOWED_CHARS.test(expression)) {
+                throw new Error("Invalid characters in expression");
+            }
+            
+            if (/=>/.test(expression)) throw new Error("Arrow functions blocked");
+            if (/\bnew\b/i.test(expression)) throw new Error("Blocked token: new");
+            if (/\bDate\b/.test(expression) && !/now\(\)/.test(expression)) {
+                throw new Error("Date usage blocked - use now() instead");
+            }
+            
+            if (/\b__proto__|\bconstructor\b/.test(expression)) {
+                throw new Error("Blocked unsafe property access");
+            }
+            
+            const sandbox = Object.assign({}, SAFE_GLOBALS_HARDENED, context || {});
+            
+            try {
+                const argNames = Object.keys(sandbox);
+                const argValues = Object.values(sandbox);
+                const src = `"use strict"; return (${expression});`;
+                const fn = Function(...argNames, src);
+                return fn(...argValues);
+            } catch (e) {
+                throw new Error(`Evaluation failed: ${e.message}`);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // INPUT VALIDATION SCHEMA
+        // ═══════════════════════════════════════════════════════════
+        function validateMicrofinanceInput(inputData) {
+            const errors = [];
+            
+            // Required fields
+            if (!inputData.solicitante || !inputData.solicitante.nombre) {
+                errors.push('Falta campo requerido: nombre del solicitante');
+            }
+            
+            if (!inputData.prestamo || inputData.prestamo.monto === undefined) {
+                errors.push('Falta campo requerido: monto del préstamo');
+            }
+            
+            // Age validation
+            if (inputData.solicitante.edad && 
+                (inputData.solicitante.edad < 18 || inputData.solicitante.edad > 80)) {
+                errors.push('Edad debe estar entre 18 y 80 años');
+            }
+            
+            // Loan amount validation
+            if (inputData.prestamo.monto && 
+                (inputData.prestamo.monto < 1000 || inputData.prestamo.monto > 100000)) {
+                errors.push('Monto del préstamo debe estar entre 1,000 y 100,000 HNL');
+            }
+            
+            // Business validation
+            if (inputData.solicitante.ventas_mensuales && 
+                inputData.solicitante.ventas_mensuales < 0) {
+                errors.push('Ventas mensuales no pueden ser negativas');
+            }
+            
+            if (inputData.solicitante.años_negocio && 
+                inputData.solicitante.años_negocio < 0) {
+                errors.push('Años en el negocio no pueden ser negativos');
+            }
+            
+            // References validation
+            if (inputData.solicitante.referencias_comunitarias) {
+                const refs = inputData.solicitante.referencias_comunitarias;
+                if (refs.length > 5) {
+                    errors.push('Máximo 5 referencias comunitarias permitidas');
+                }
+                
+                refs.forEach((ref, idx) => {
+                    if (ref.nombre && ref.nombre.length > 50) {
+                        errors.push(`Referencia ${idx+1}: nombre demasiado largo`);
+                    }
+                    if (ref.años_conocido && ref.años_conocido < 0.5) {
+                        errors.push(`Referencia ${idx+1}: debe conocer al menos 6 meses`);
+                    }
+                });
+            }
+            
+            return errors;
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // MICROFINANCE INVARIANT VALIDATOR
+        // ═══════════════════════════════════════════════════════════
+        class MicrofinanceInvariantValidator {
+            constructor() {
+                this.violations = [];
+            }
+
+            validate(state, audit = [], rulesApplied = [], currentIteration = 0) {
+                this.violations = [];
+                const context = { state, audit, rulesApplied, currentIteration };
+
+                this.numericalSanity(state);
+                this.microfinanceLoanLimits(state);
+                this.communityReferenceIntegrity(state);
+                this.informalIncomeValidation(state);
+                this.solidarityGroupCoherence(state);
+                this.regionalCompliance(state);
+
+                return this.violations;
+            }
+
+            numericalSanity(state) {
+                const flatten = (obj, prefix = '') => {
+                    let result = {};
+                    for (const key in obj) {
+                        if (obj.hasOwnProperty(key)) {
+                            const value = obj[key];
+                            const newKey = prefix ? `${prefix}.${key}` : key;
+                            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                Object.assign(result, flatten(value, newKey));
+                            } else {
+                                result[newKey] = value;
+                            }
+                        }
+                    }
+                    return result;
+                };
+
+                const flat = flatten(state);
+                const badNumbers = Object.entries(flat)
+                    .filter(([key, value]) => typeof value === 'number' && !isFinite(value))
+                    .map(([key]) => key);
+
+                if (badNumbers.length > 0) {
+                    this.violations.push({
+                        invariant: 'numerical_sanity',
+                        severity: 'error',
+                        message: `NaN/Infinity detectado en campos: ${badNumbers.join(', ')}`
+                    });
+                }
+            }
+
+            microfinanceLoanLimits(state) {
+                const { prestamo = {}, solicitante = {} } = state;
+                const issues = [];
+                
+                if (prestamo.monto !== undefined) {
+                    if (solicitante.primer_prestamo && prestamo.monto > 10000) {
+                        issues.push(`Primer préstamo excede límite: ${prestamo.monto} > 10,000 HNL`);
+                    }
+                    
+                    if (!solicitante.empleo_formal && prestamo.monto > 50000) {
+                        issues.push(`Empleo informal excede límite: ${prestamo.monto} > 50,000 HNL`);
+                    }
+                    
+                    if (prestamo.monto < 1000) {
+                        issues.push(`Monto mínimo no alcanzado: ${prestamo.monto} < 1,000 HNL`);
+                    }
+                    
+                    if (prestamo.monto > 100000) {
+                        issues.push(`Monto máximo excedido: ${prestamo.monto} > 100,000 HNL`);
+                    }
+                }
+                
+                if (issues.length > 0) {
+                    this.violations.push({
+                        invariant: 'microfinance_loan_limits',
+                        severity: 'error',
+                        message: `Límites de préstamo violados: ${issues.join('; ')}`,
+                        details: { issues }
+                    });
+                }
+            }
+
+            communityReferenceIntegrity(state) {
+                const { solicitante = {} } = state;
+                
+                if (solicitante.referencias_comunitarias) {
+                    const references = solicitante.referencias_comunitarias;
+                    
+                    const names = references.map(ref => ref.nombre?.toLowerCase().trim());
+                    const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
+                    
+                    if (duplicates.length > 0) {
+                        this.violations.push({
+                            invariant: 'community_reference_integrity',
+                            severity: 'warn',
+                            message: `Referencias comunitarias duplicadas: ${[...new Set(duplicates)].join(', ')}`
+                        });
+                    }
+                    
+                    const suspiciousRefs = references.filter(ref => 
+                        ref.años_conocido !== undefined && ref.años_conocido < 1
+                    );
+                    
+                    if (suspiciousRefs.length > 0) {
+                        this.violations.push({
+                            invariant: 'reference_relationship_duration',
+                            severity: 'warn',
+                            message: `Referencias con menos de 1 año de relación: ${suspiciousRefs.length}`
+                        });
+                    }
+                }
+            }
+
+            informalIncomeValidation(state) {
+                const { solicitante = {}, calculo = {} } = state;
+                
+                if (!solicitante.empleo_formal && calculo.ingresos_completado) {
+                    const estimatedIncome = solicitante.ingresos_mensuales_estimados;
+                    const reportedSales = solicitante.ventas_mensuales;
+                    
+                    if (estimatedIncome !== undefined && reportedSales !== undefined) {
+                        const lowerBound = reportedSales * 0.4;
+                        const upperBound = reportedSales * 0.7;
+                        
+                        if (estimatedIncome < lowerBound || estimatedIncome > upperBound) {
+                            this.violations.push({
+                                invariant: 'informal_income_validation',
+                                severity: 'warn',
+                                message: `Ingresos estimados (${estimatedIncome.toFixed(2)}) fuera de rango esperado (${lowerBound.toFixed(2)}-${upperBound.toFixed(2)}) basado en ventas`
+                            });
+                        }
+                    }
+                }
+            }
+
+            solidarityGroupCoherence(state) {
+                const { solicitante = {}, aprobacion = {} } = state;
+                
+                if (aprobacion.garantia_grupal && 
+                    (!solicitante.grupo_solidario || !solicitante.grupo_solidario.existe)) {
+                    this.violations.push({
+                        invariant: 'solidarity_group_coherence',
+                        severity: 'error',
+                        message: 'Garantía grupal aprobada pero no existe grupo solidario'
+                    });
+                }
+            }
+
+            regionalCompliance(state) {
+                const { prestamo = {} } = state;
+                const issues = [];
+                
+                if (prestamo.tasa_interes !== undefined && prestamo.tasa_interes > 20) {
+                    issues.push(`Tasa de interés (${prestamo.tasa_interes}%) excede límite de Honduras (20%)`);
+                }
+                
+                if (prestamo.plazo_meses !== undefined && prestamo.plazo_meses > 36) {
+                    issues.push(`Plazo (${prestamo.plazo_meses} meses) excede máximo permitido (36 meses)`);
+                }
+                
+                if (issues.length > 0) {
+                    this.violations.push({
+                        invariant: 'regional_compliance',
+                        severity: 'error',
+                        message: `Cumplimiento regional violado: ${issues.join('; ')}`,
+                        details: { issues }
+                    });
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // SECURE AUDIT LOGGER
+        // ═══════════════════════════════════════════════════════════
+        class MicrofinanceAuditLogger {
+            constructor() {
+                this.entries = [];
+                this.sensitiveFields = ['identificacion', 'telefono', 'direccion', 'cedula'];
+            }
+
+            async sha256(str) {
+                // Best-effort cryptographic hashing
+                if (typeof crypto !== 'undefined' && crypto.subtle) {
+                    try {
+                        const encoder = new TextEncoder();
+                        const data = encoder.encode(str);
+                        const hash = await crypto.subtle.digest('SHA-256', data);
+                        return Array.from(new Uint8Array(hash))
+                            .map(b => b.toString(16).padStart(2, '0'))
+                            .join('');
+                    } catch (e) {
+                        console.warn('SHA-256 unavailable:', e.message);
+                    }
+                }
+                return null;
+            }
+
+            checksum(str) {
+                // Fast non-cryptographic checksum
+                let h = 0;
+                for (let i = 0; i < str.length; i++) {
+                    h = (h << 5) - h + str.charCodeAt(i) | 0;
+                }
+                return h.toString(36);
+            }
+
+            log(message, level = 'info', data = null) {
+                const sanitizedMessage = this.sanitize(message, data);
+                const checksum = this.checksum(sanitizedMessage);
+                
+                const entry = {
+                    timestamp: new Date().toISOString(),
+                    level,
+                    message: sanitizedMessage,
+                    checksum: checksum,
+                    sha256: null // Will be populated async
+                };
+                
+                this.entries.push(entry);
+                
+                // Async cryptographic hash
+                this.sha256(sanitizedMessage).then(hash => {
+                    if (hash) entry.sha256 = hash;
+                }).catch(() => {});
+            }
+
+            sanitize(message, data) {
+                if (!data) return message;
+                
+                const redacted = JSON.stringify(data, (key, value) => {
+                    return this.sensitiveFields.includes(key.toLowerCase()) ? '***REDACTED***' : value;
+                });
+                
+                return `${message} | Data: ${redacted}`;
+            }
+
+            getTrail() {
+                return this.entries;
+            }
+
+            clear() {
+                this.entries = [];
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // AXIS/KERN MICROFINANCE ENGINE (Hardened)
+        // ═══════════════════════════════════════════════════════════
+        class HardenedMicrofinanceEngine {
+            constructor() {
+                this.logger = new MicrofinanceAuditLogger();
+                this.validator = new MicrofinanceInvariantValidator();
+                this.currentIteration = 0;
+                this.primitiveCallCounts = {
+                    EXPRESSION_EVALUATOR: 0,
+                    CONTEXT_SANITIZER: 0,
+                    CONDITION_EVALUATOR: 0,
+                    TEMPLATE_RESOLVER: 0,
+                    STATE_MUTATOR: 0,
+                    OBJECT_FLATTENER: 0,
+                    RULE_APPLICATOR: 0,
+                    ITERATION_MANAGER: 0
+                };
+            }
+
+            // PRIMITIVE 8: ITERATION_MANAGER
+            apply(inputData, rulesConfig) {
+                this.primitiveCallCounts.ITERATION_MANAGER++;
+                this.logger.clear();
+                this.currentIteration = 0;
+                
+                this.log('KERN: Iniciando pipeline de ejecución');
+                this.log(`Solicitante: ${inputData.solicitante?.nombre || 'Desconocido'}`);
+                
+                let currentState = JSON.parse(JSON.stringify(inputData));
+                let iteration = 0;
+                let changed = true;
+                const maxIterations = rulesConfig.max_iterations || 12;
+                
+                const sortedRules = [...rulesConfig.rules].sort((a, b) => 
+                    (a.priority || 999) - (b.priority || 999)
+                );
+                
+                while (changed && iteration < maxIterations) {
+                    changed = false;
+                    iteration++;
+                    this.currentIteration = iteration;
+                    this.log(`--- Iteración ${iteration} ---`);
+                    
+                    const iterationRulesApplied = [];
+                    
+                    for (let rule of sortedRules) {
+                        const previousState = JSON.stringify(currentState);
+                        
+                        if (this.evaluateCondition(rule.if, currentState)) {
+                            this.log(`Aplicada: ${rule.name}`);
+                            iterationRulesApplied.push(rule.name);
+                            
+                            if (rule.then) {
+                                currentState = this.applyTransformations(
+                                    currentState, 
+                                    rule.then,
+                                    rule.name
+                                );
+                                
+                                if (previousState !== JSON.stringify(currentState)) {
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Validate invariants after each iteration
+                    const violations = this.validator.validate(
+                        currentState, 
+                        this.logger.getTrail(), 
+                        iterationRulesApplied, 
+                        iteration
+                    );
+                    
+                    if (violations.length > 0) {
+                        violations.forEach(v => {
+                            this.log(
+                                `VIOLACIÓN_INVARIANTE: ${v.invariant} - ${v.message}`, 
+                                v.severity
+                            );
+                        });
+                    }
+                }
+                
+                this.log(`Completado en ${iteration} iteraciones`);
+                
+                // FINAL VALIDATION WITH HARD GATING
+                const finalViolations = this.validator.validate(
+                    currentState, 
+                    this.logger.getTrail(), 
+                    [], 
+                    iteration
+                );
+                
+                // Hard gate: reject if any error-level violations
+                const hardErrors = finalViolations.filter(v => v.severity === 'error');
+                if (hardErrors.length > 0) {
+                    this.log(`DECISIÓN BLOQUEADA por invariantes críticos: ${hardErrors.length} errores`, 'error');
+                    hardErrors.forEach(error => {
+                        this.log(`INVARIANTE_CRÍTICO: ${error.invariant} - ${error.message}`, 'error');
+                    });
+                    
+                    // Override approval decision
+                    currentState.aprobacion = {
+                        ...currentState.aprobacion,
+                        estado: 'rechazado',
+                        monto_aprobado: 0,
+                        puede_aprobar: false,
+                        decision_final: true,
+                        motivo_rechazo: `Violación de invariantes: ${hardErrors.map(e => e.invariant).join(', ')}`
+                    };
+                }
+                
+                return {
+                    input: inputData,
+                    output: currentState,
+                    iterations: iteration,
+                    audit: this.logger.getTrail(),
+                    rulesApplied: this.getRulesApplied(),
+                    primitiveStats: this.primitiveCallCounts,
+                    invariantViolations: finalViolations
+                };
+            }
+
+            // PRIMITIVE 7: RULE_APPLICATOR
+            applyTransformations(state, transformations, ruleName) {
+                this.primitiveCallCounts.RULE_APPLICATOR++;
+                const newState = JSON.parse(JSON.stringify(state));
+                
+                for (const [path, value] of Object.entries(transformations)) {
+                    try {
+                        const resolvedValue = this.resolveValue(value, newState);
+                        this.setNestedPath(newState, path, resolvedValue);
+                    } catch (e) {
+                        this.log(`Error en transformación ${path}: ${e.message}`, 'error');
+                    }
+                }
+                
+                return newState;
+            }
+
+            // PRIMITIVE 3: CONDITION_EVALUATOR
+            evaluateCondition(condition, context) {
+                this.primitiveCallCounts.CONDITION_EVALUATOR++;
+                if (!condition) return true;
+                
+                try {
+                    if (typeof condition === "boolean") return condition;
+                    const safeContext = this.createSafeContext(context);
+                    this.primitiveCallCounts.EXPRESSION_EVALUATOR++;
+                    const result = microfinanceSafeEval(condition, safeContext, { maxLen: 200 });
+                    return !!result;
+                } catch (e) {
+                    this.log(`Condición bloqueada: ${String(condition)} - ${e.message}`, "warn");
+                    return false;
+                }
+            }
+
+            // PRIMITIVE 4: TEMPLATE_RESOLVER
+            resolveValue(template, context) {
+                this.primitiveCallCounts.TEMPLATE_RESOLVER++;
+                if (typeof template !== 'string') return template;
+                
+                // Block external resources
+                if (/(https?:\/\/|www\.)/i.test(template)) {
+                    throw new Error("Acceso a recursos externos bloqueado");
+                }
+                
+                // Limit template complexity
+                const expressionCount = (template.match(/\{\{/g) || []).length;
+                if (expressionCount > 5) {
+                    throw new Error("Plantilla demasiado compleja - máximo 5 expresiones");
+                }
+                
+                const single = template.match(/^\s*\{\{([\s\S]+)\}\}\s*$/);
+                const evalExpr = (expr) => {
+                    const expression = expr.trim();
+                    try {
+                        if (expression === 'now()') return new Date().toLocaleString('es-HN');
+                        if (expression === 'uuid()') return this.generateUUID();
+                        const safeContext = this.createSafeContext(context);
+                        this.primitiveCallCounts.EXPRESSION_EVALUATOR++;
+                        return microfinanceSafeEval(expression, safeContext, { maxLen: 200 });
+                    } catch (e) {
+                        this.log(`Plantilla bloqueada: ${expression} - ${e.message}`, 'warn');
+                        return '';
+                    }
+                };
+                
+                if (single) return evalExpr(single[1]);
+                return template.replace(/\{\{(.*?)\}\}/g, (_, expr) => String(evalExpr(expr)));
+            }
+
+            // PRIMITIVE 2: CONTEXT_SANITIZER
+            createSafeContext(context) {
+                this.primitiveCallCounts.CONTEXT_SANITIZER++;
+                const flattened = this.flattenObject(context);
+                const safe = Object.assign({}, flattened);
+                
+                Object.keys(context || {}).forEach((k) => {
+                    safe[k] = context[k];
+                });
+                
+                Object.keys(SAFE_GLOBALS_HARDENED).forEach(k => {
+                    if (!(k in safe)) safe[k] = SAFE_GLOBALS_HARDENED[k];
+                });
+                
+                // Remove dangerous properties
+                const dangerousProps = ['localStorage', 'sessionStorage', 'indexedDB', 'XMLHttpRequest'];
+                dangerousProps.forEach(prop => delete safe[prop]);
+                
+                // Freeze to prevent mutation
+                try {
+                    return Object.freeze(safe);
+                } catch (e) {
+                    return safe; // Fallback if freezing fails
+                }
+            }
+
+            // PRIMITIVE 6: OBJECT_FLATTENER
+            flattenObject(obj, prefix = '') {
+                this.primitiveCallCounts.OBJECT_FLATTENER++;
+                const flattened = {};
+                
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        const newKey = prefix ? `${prefix}.${key}` : key;
+                        
+                        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                            Object.assign(flattened, this.flattenObject(obj[key], newKey));
+                        } else {
+                            flattened[newKey.replace(/\./g, '_')] = obj[key];
+                        }
+                    }
+                }
+                
+                return flattened;
+            }
+
+            // PRIMITIVE 5: STATE_MUTATOR
+            setNestedPath(obj, path, value) {
+                this.primitiveCallCounts.STATE_MUTATOR++;
+                const keys = path.split('.');
+                let current = obj;
+                
+                for (let i = 0; i < keys.length - 1; i++) {
+                    if (!current[keys[i]] || typeof current[keys[i]] !== 'object') {
+                        current[keys[i]] = {};
+                    }
+                    current = current[keys[i]];
+                }
+                
+                current[keys[keys.length - 1]] = value;
+            }
+
+            generateUUID() {
+                return 'MF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            }
+
+            log(message, level = 'info', data = null) {
+                this.logger.log(message, level, data);
+            }
+
+            getRulesApplied() {
+                return this.logger.getTrail()
+                    .filter(entry => entry.message.startsWith('Aplicada:'))
+                    .map(entry => entry.message.replace('Aplicada: ', ''));
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        // MICROFINANCE RULES CONFIGURATION
+        // ═══════════════════════════════════════════════════════════
+        const microfinanceRules = {
+            "max_iterations": 12,
+            "rules": [
+                {
+                    "name": "evaluar_ingresos_informales",
+                    "priority": 1,
+                    "category": "ingresos",
+                    "if": "solicitante.empleo_formal == false && solicitante.ingresos_mensuales_estimados == null",
+                    "then": {
+                        "solicitante.ingresos_mensuales_estimados": "{{ solicitante.ventas_mensuales * 0.6 }}",
+                        "solicitante.estabilidad_laboral": "{{ solicitante.anios_negocio > 2 ? 0.8 : solicitante.años_negocio > 1 ? 0.6 : 0.4 }}",
+                        "calculo.ingresos_completado": true
+                    }
+                },
+                {
+                    "name": "evaluar_referencias_comunitarias",
+                    "priority": 2,
+                    "category": "credito",
+                    "if": "solicitante.referencias_total >= 1",  // or keep >= 2 if that’s policy 
+                    "then": {
+                        "puntaje.comunitario": "{{ (solicitante.referencias_confiables || 0) / (solicitante.referencias_total || 1) }}",
+                        "puntaje.credito_efectivo": "{{ Math.max(solicitante.puntaje_credito || 0, (puntaje.comunitario || 0) * 700) }}",                        
+			"calculo.referencias_completado": true
+                    }
+                },
+                {
+                    "name": "evaluar_grupo_solidario",
+                    "priority": 3,
+                    "category": "garantia",
+                    "if": "solicitante.grupo_solidario && solicitante.grupo_solidario.existe == true",
+                    "then": {
+                        "aprobacion.garantia_grupal": true,
+                        "tasa.interes": "{{ 18 * 0.9 }}",
+                        "limite.prestamo": 50000,
+                        "calculo.grupo_completado": true
+                    }
+                },
+                {
+                    "name": "evaluar_capacidad_pago",
+                    "priority": 4,
+                    "category": "pagos",
+                    "if": "calculo.ingresos_completado == true && prestamo.monto > 0",
+                    "then": {
+                        "calculo.tasa_mensual": "{{ (tasa.interes || 18) / 100 / 12 }}",
+                        "pago.cuota_mensual_estimada": "{{ calculo.tasa_mensual === 0 ? (prestamo.monto / prestamo.plazo_meses) : (prestamo.monto * calculo.tasa_mensual) / (1 - Math.pow(1 + calculo.tasa_mensual, -prestamo.plazo_meses)) }}",
+                        "ratio.pago_ingresos": "{{ pago.cuota_mensual_estimada / solicitante.ingresos_mensuales_estimados }}",
+                        "calculo.capacidad_completado": true
+                    }
+                },
+                {
+                    "name": "tomar_decision_credito",
+                    "priority": 5,
+                    "category": "aprobacion",
+                    "if": "calculo.capacidad_completado == true && calculo.referencias_completado == true",
+                    "then": {
+                        "aprobacion.ratio_limite": "{{ solicitante.primer_prestamo ? 0.35 : 0.4 }}",
+                        "aprobacion.puede_aprobar": "{{ ratio.pago_ingresos <= aprobacion.ratio_limite && puntaje.credito_efectivo >= 500 }}",
+                        "aprobacion.estado": "{{ aprobacion.puede_aprobar ? (ratio.pago_ingresos <= 0.3 ? 'aprobado' : 'aprobado_condicional') : 'rechazado' }}",
+                        "aprobacion.monto_aprobado": "{{ aprobacion.puede_aprobar ? prestamo.monto : 0 }}",
+                        "aprobacion.decision_final": true,
+                        "prestamo.procesado": true,
+                        "prestamo.fecha_solicitud": "{{ now() }}",
+                        "prestamo.numero_referencia": "{{ uuid() }}",
+                        "prestamo.tasa_interes": "{{ tasa.interes || 18 }}"
+                    }
+                }
+            ]
+        };
+
+        // ═══════════════════════════════════════════════════════════
+        // UI CONTROLLER
+        // ═══════════════════════════════════════════════════════════
+        const engine = new HardenedMicrofinanceEngine();
+        let lastResult = null;
+
+        function agregarReferencia() {
+            const container = document.getElementById('referencias-container');
+            const newRef = document.createElement('div');
+            newRef.className = 'reference-item';
+            newRef.innerHTML = `
+                <input type="text" placeholder="Nombre referencia" style="margin-bottom: 5px;">
+                <div class="checkbox-group" style="margin: 5px 0;">
+                    <input type="checkbox" checked>
+                    <label style="font-size: 0.8em;">Persona confiable</label>
+                </div>
+                <input type="number" placeholder="Años de conocerlo" value="1" min="1" style="font-size: 0.8em;">
+            `;
+            container.appendChild(newRef);
+        }
+
+        function obtenerDatosSolicitud() {
+            const referencias = [];
+            document.querySelectorAll('#referencias-container .reference-item').forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                referencias.push({
+                    nombre: inputs[0].value,
+                    confiable: inputs[1].checked,
+                    años_conocido: parseFloat(inputs[2].value)
+                });
+            });
+	    const referenciasConfiables = referencias.reduce((n, r) => n + (r.confiable ? 1 : 0), 0);
+            
+	    return {
+                solicitante: {
+                    nombre: document.getElementById('nombre').value,
+                    edad: parseInt(document.getElementById('edad').value),
+                    empleo_formal: document.getElementById('empleo_formal').checked,
+                    ventas_mensuales: parseFloat(document.getElementById('ventas_mensuales').value),
+                    años_negocio: parseFloat(document.getElementById('años_negocio').value), // keep for UI only
+     		    anios_negocio: parseFloat(document.getElementById('años_negocio').value), // ASCII alias ★ 
+                    referencias_comunitarias: referencias,
+		    referencias_confiables: referenciasConfiables,  // ★
+                    referencias_total: referencias.length,          // ★
+                    primer_prestamo: document.getElementById('primer_prestamo').checked,
+                    grupo_solidario: {
+                        existe: document.getElementById('grupo_solidario').checked
+                    }
+                },
+                prestamo: {
+                    monto: parseFloat(document.getElementById('monto_prestamo').value),
+                    plazo_meses: parseInt(document.getElementById('plazo_meses').value),
+                    proposito: document.getElementById('proposito').value
+                },
+                calculo: {
+                    ingresos_completado: false,
+                    referencias_completado: false,
+                    grupo_completado: false,
+                    capacidad_completado: false
+                },
+                tasa: {
+                    interes: 18
+                }
+            };
+        }
+
+        function evaluarCredito() {
+            try {
+                const inputData = obtenerDatosSolicitud();
+                
+                // Validate input before processing
+                const errors = validateMicrofinanceInput(inputData);
+                if (errors.length > 0) {
+                    const errorHtml = errors.map(e => `<div class="error-box">❌ ${e}</div>`).join('');
+                    document.getElementById('output').innerHTML = errorHtml;
+                    actualizarAudit([{
+                        timestamp: new Date().toISOString(),
+                        level: 'error',
+                        message: `Validación fallida: ${errors.length} errores encontrados`
+                    }]);
+                    return;
+                }
+                
+                const result = engine.apply(inputData, microfinanceRules);
+                lastResult = result;
+                
+                mostrarResultados(result);
+                actualizarAudit(result.audit);
+                actualizarKernelStatus(result);
+            } catch (e) {
+                document.getElementById('output').innerHTML = `
+                    <div class="error-box">
+                        <strong>Error de Procesamiento</strong><br>
+                        ${e.message}
+                    </div>
+                `;
+            }
+        }
+
+        function mostrarResultados(result) {
+            const output = result.output;
+            const aprobacion = output.aprobacion || {};
+            const prestamo = output.prestamo || {};
+            const pago = output.pago || {};
+            const puntaje = output.puntaje || {};
+            const solicitante = output.solicitante || {};
+            const ratio = output.ratio || {};
+
+            let statusClass = 'status-denied';
+            let statusText = '❌ Crédito Rechazado';
+            let statusIcon = '❌';
+
+            if (aprobacion.estado === 'aprobado') {
+                statusClass = 'status-approved';
+                statusText = '✅ Crédito Aprobado';
+                statusIcon = '✅';
+            } else if (aprobacion.estado === 'aprobado_condicional') {
+                statusClass = 'status-conditional';
+                statusText = '⚠️ Aprobado Condicional';
+                statusIcon = '⚠️';
+            }
+            
+            // Show rejection reason if available
+            let rejectionReasonHtml = '';
+            if (aprobacion.motivo_rechazo) {
+                rejectionReasonHtml = `
+                    <div class="error-box" style="margin-top: 12px; font-size: 12px;">
+                        <strong>Motivo de Rechazo:</strong><br>
+                        ${aprobacion.motivo_rechazo}
+                    </div>
+                `;
+            }
+
+            const formatoMoneda = (monto) => {
+                const num = Number(monto);
+                return isFinite(num) ? 'L ' + num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') : 'L 0.00';
+            };
+
+            const formatoPorcentaje = (valor) => {
+                const num = Number(valor);
+                return isFinite(num) ? (num * 100).toFixed(1) + '%' : '0.0%';
+            };
+
+            let violationsHtml = '';
+            if (result.invariantViolations && result.invariantViolations.length > 0) {
+                violationsHtml = result.invariantViolations.map(v => {
+                    const boxClass = v.severity === 'error' ? 'error-box' : 'warn-box';
+                    return `
+                        <div class="${boxClass}" style="margin-top: 12px; font-size: 11px;">
+                            <strong>${v.severity.toUpperCase()}:</strong> ${v.message}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('output').innerHTML = `
+                <div class="${statusClass}">
+                    ${statusIcon} ${statusText}
+                </div>
+                
+                <div class="metric-card">
+                    <div style="font-size: 12px; color: #2e86c1; margin-bottom: 12px; font-weight: 600;">DETALLES DEL CRÉDITO</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Monto Solicitado:</span>
+                        <span class="metric-value currency">${formatoMoneda(prestamo.monto)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Monto Aprobado:</span>
+                        <span class="metric-value currency">${formatoMoneda(aprobacion.monto_aprobado || 0)}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Plazo:</span>
+                        <span class="metric-value">${prestamo.plazo_meses} meses</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Tasa Interés:</span>
+                        <span class="metric-value">${prestamo.tasa_interes ? prestamo.tasa_interes.toFixed(2) + '%' : 'N/A'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Cuota Mensual:</span>
+                        <span class="metric-value currency">${pago.cuota_mensual_estimada ? formatoMoneda(pago.cuota_mensual_estimada) : 'N/A'}</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div style="font-size: 12px; color: #2e86c1; margin-bottom: 12px; font-weight: 600;">ANÁLISIS FINANCIERO</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Ingresos Estimados:</span>
+                        <span class="metric-value currency">${solicitante.ingresos_mensuales_estimados ? formatoMoneda(solicitante.ingresos_mensuales_estimados) : 'N/A'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Ratio Pago/Ingresos:</span>
+                        <span class="metric-value">${ratio.pago_ingresos ? formatoPorcentaje(ratio.pago_ingresos) : 'N/A'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Límite Ratio:</span>
+                        <span class="metric-value">${aprobacion.ratio_limite ? formatoPorcentaje(aprobacion.ratio_limite) : 'N/A'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Puntaje Crediticio:</span>
+                        <span class="metric-value">${puntaje.credito_efectivo || 'N/A'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Estabilidad Laboral:</span>
+                        <span class="metric-value">${solicitante.estabilidad_laboral ? formatoPorcentaje(solicitante.estabilidad_laboral) : 'N/A'}</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div style="font-size: 12px; color: #2e86c1; margin-bottom: 12px; font-weight: 600;">INFORMACIÓN ADICIONAL</div>
+                    <div class="metric-row">
+                        <span class="metric-label">Garantía Grupal:</span>
+                        <span class="metric-value">${aprobacion.garantia_grupal ? '✅ Sí' : '❌ No'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Referencias:</span>
+                        <span class="metric-value">${solicitante.referencias_comunitarias ? solicitante.referencias_comunitarias.filter(ref => ref.confiable).length + '/' + solicitante.referencias_comunitarias.length : '0'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Referencia:</span>
+                        <span class="metric-value">${prestamo.numero_referencia || 'N/A'}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Iteraciones:</span>
+                        <span class="metric-value">${result.iterations}</span>
+                    </div>
+                </div>
+                
+                ${violationsHtml}
+            `;
+        }
+
+        function actualizarAudit(auditEntries) {
+            const auditDiv = document.getElementById('audit');
+            auditDiv.innerHTML = '';
+            
+            auditEntries.forEach(entry => {
+                const div = document.createElement('div');
+                let entryClass = 'audit-entry';
+                
+                if (entry.level === 'error' || entry.message.includes('VIOLACIÓN_INVARIANTE')) {
+                    entryClass += ' audit-error';
+                } else if (entry.level === 'warn') {
+                    entryClass += ' audit-warn';
+                }
+                
+                div.className = entryClass;
+                const time = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString('es-HN') : '';
+                div.textContent = `[${time}] ${entry.message}`;
+                auditDiv.appendChild(div);
+            });
+            
+            auditDiv.scrollTop = auditDiv.scrollHeight;
+        }
+
+        function actualizarKernelStatus(result) {
+            const stats = result.primitiveStats;
+            const violations = result.invariantViolations || [];
+            
+            document.getElementById('kernelStatus').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-row">
+                        <span class="metric-label">Motor:</span>
+                        <span class="metric-value" style="color: #28b463;">ACTIVE</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Reglas Cargadas:</span>
+                        <span class="metric-value">5</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Iteraciones:</span>
+                        <span class="metric-value">${result.iterations}</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Violaciones:</span>
+                        <span class="metric-value" style="color: ${violations.length > 0 ? '#e74c3c' : '#28b463'};">${violations.length}</span>
+                    </div>
+                </div>
+                
+                <div class="section-title">🔧 Conteo de Primitivas</div>
+                <div class="metric-card">
+                    <div style="font-size: 10px; line-height: 1.8;">
+                        <div class="metric-row">
+                            <span class="metric-label">EXPRESSION_EVALUATOR:</span>
+                            <span class="metric-value">${stats.EXPRESSION_EVALUATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">CONTEXT_SANITIZER:</span>
+                            <span class="metric-value">${stats.CONTEXT_SANITIZER}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">CONDITION_EVALUATOR:</span>
+                            <span class="metric-value">${stats.CONDITION_EVALUATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">TEMPLATE_RESOLVER:</span>
+                            <span class="metric-value">${stats.TEMPLATE_RESOLVER}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">STATE_MUTATOR:</span>
+                            <span class="metric-value">${stats.STATE_MUTATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">OBJECT_FLATTENER:</span>
+                            <span class="metric-value">${stats.OBJECT_FLATTENER}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">RULE_APPLICATOR:</span>
+                            <span class="metric-value">${stats.RULE_APPLICATOR}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">ITERATION_MANAGER:</span>
+                            <span class="metric-value">${stats.ITERATION_MANAGER}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function cargarEjemplo(tipo) {
+            if (tipo === 'aprobado') {
+                document.getElementById('nombre').value = 'Carlos Martínez';
+                document.getElementById('edad').value = 35;
+                document.getElementById('empleo_formal').checked = false;
+                document.getElementById('primer_prestamo').checked = false;
+                document.getElementById('ventas_mensuales').value = 40000;
+                document.getElementById('años_negocio').value = 4;
+                document.getElementById('monto_prestamo').value = 20000;
+                document.getElementById('plazo_meses').value = '12';
+                document.getElementById('grupo_solidario').checked = true;
+            } else if (tipo === 'rechazado') {
+                document.getElementById('nombre').value = 'Ana López';
+                document.getElementById('edad').value = 25;
+                document.getElementById('empleo_formal').checked = false;
+                document.getElementById('primer_prestamo').checked = true;
+                document.getElementById('ventas_mensuales').value = 8000;
+                document.getElementById('años_negocio').value = 0.5;
+                document.getElementById('monto_prestamo').value = 30000;
+                document.getElementById('plazo_meses').value = '12';
+                document.getElementById('grupo_solidario').checked = false;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure at least 2 references for valid evaluation
+            const refCount = document.querySelectorAll('#referencias-container .reference-item').length;
+            if (refCount < 2) {
+                for (let i = refCount; i < 2; i++) {
+                    agregarReferencia();
+                }
+            }
+            
+            console.log('🏦 AXIS/KERN Hardened Microfinance Engine - Honduras');
+            console.log('✓ 8 primitives loaded');
+            console.log('✓ 5 invariants active');
+            console.log('✓ Offline mode enabled');
+            console.log('✓ Security hardening complete');
+            console.log('✓ Amortized payment formula active');
+            console.log('✓ Cryptographic audit trail enabled');
+            console.log('✓ Hard gating on invariant violations');
+        });
+    </script>
+</body>
+</html>
